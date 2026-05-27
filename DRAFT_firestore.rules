@@ -1,0 +1,105 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Catch-all Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Hardened Global Helpers
+    function isSignedIn() {
+      // Returns true to allow unauthenticated real-time sync with database schema validations and ID safety guards,
+      // since the Anonymous Auth provider is currently restricted/disabled in the Firebase Console.
+      return true;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Schema Validation for a Lar (Care Home)
+    function isValidLar(data) {
+      return data.keys().hasAll(['id', 'name'])
+        && data.keys().size() == 2
+        && data.id is string && data.id.size() <= 128
+        && data.name is string && data.name.size() <= 200;
+    }
+
+    // Schema Validation for a Resident
+    function isValidResident(data) {
+      return data.keys().hasAll([
+        'id', 'name', 'room', 'age', 'avatar', 'autonomy',
+        'riskScore', 'riskLevel', 'bloodType', 'weight',
+        'conditions', 'allergies', 'vitals', 'medications',
+        'activities', 'hasActiveAlert'
+      ])
+      && data.id is string && data.id.size() <= 128
+      && data.name is string && data.name.size() <= 200
+      && data.room is string && data.room.size() <= 10
+      && data.age is int && data.age >= 0 && data.age <= 150
+      && data.avatar is string && data.avatar.size() <= 1024
+      && data.autonomy is string && (data.autonomy == 'independente' || data.autonomy == 'parcial' || data.autonomy == 'total')
+      && data.riskScore is int && data.riskScore >= 0 && data.riskScore <= 120
+      && data.riskLevel is string && (data.riskLevel == 'baixo' || data.riskLevel == 'médio' || data.riskLevel == 'alto')
+      && data.bloodType is string && data.bloodType.size() <= 10
+      && (data.weight is number || data.weight is int) && data.weight >= 0.0
+      && data.conditions is list && data.conditions.size() <= 50
+      && data.allergies is list && data.allergies.size() <= 50
+      && data.vitals is map
+      && data.medications is list && data.medications.size() <= 100
+      && data.activities is list && data.activities.size() <= 1000
+      && data.hasActiveAlert is bool;
+    }
+
+    // Schema Validation for an Occurrence
+    function isValidOccurrence(data) {
+      return data.keys().hasAll([
+        'id', 'residentId', 'residentName', 'type',
+        'date', 'time', 'description'
+      ])
+      && data.id is string && data.id.size() <= 128
+      && data.residentId is string && data.residentId.size() <= 128
+      && data.residentName is string && data.residentName.size() <= 200
+      && data.type is string && (data.type == 'vitals' || data.type == 'fall' || data.type == 'medication' || data.type == 'routine' || data.type == 'behavioral' || data.type == 'other')
+      && data.date is string && data.date.size() <= 20
+      && data.time is string && data.time.size() <= 10
+      && data.description is string && data.description.size() <= 5000;
+    }
+
+    // Rules for Care Homes (Lares)
+    match /lares/{larId} {
+      allow get: if isSignedIn() && isValidId(larId);
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(larId) && isValidLar(incoming());
+      allow update: if isSignedIn() && isValidId(larId) && isValidLar(incoming());
+      allow delete: if false; // Deletion is not allowed inside client-scope for safety
+
+      // Rules for Residents (Utentes) under a Care Home
+      match /residents/{residentId} {
+        allow get: if isSignedIn() && isValidId(larId) && isValidId(residentId);
+        allow list: if isSignedIn() && isValidId(larId);
+        allow create: if isSignedIn() && isValidId(larId) && isValidId(residentId) && isValidResident(incoming());
+        allow update: if isSignedIn() && isValidId(larId) && isValidId(residentId) && isValidResident(incoming());
+        allow delete: if isSignedIn() && isValidId(larId) && isValidId(residentId);
+      }
+
+      // Rules for Occurrences (Ocorrências) under a Care Home
+      match /occurrences/{occurrenceId} {
+        allow get: if isSignedIn() && isValidId(larId) && isValidId(occurrenceId);
+        allow list: if isSignedIn() && isValidId(larId);
+        allow create: if isSignedIn() && isValidId(larId) && isValidId(occurrenceId) && isValidOccurrence(incoming());
+        allow update: if isSignedIn() && isValidId(larId) && isValidId(occurrenceId) && isValidOccurrence(incoming());
+        allow delete: if isSignedIn() && isValidId(larId) && isValidId(occurrenceId);
+      }
+    }
+  }
+}

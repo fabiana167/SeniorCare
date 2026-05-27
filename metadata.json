@@ -1,0 +1,6 @@
+{
+  "name": "SeniorCare",
+  "description": "Sistema de gestão clínica e triagem para cuidados seniores (utentes, ocorrências e sinais vitais).",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

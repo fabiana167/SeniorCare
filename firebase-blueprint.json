@@ -1,0 +1,142 @@
+{
+  "entities": {
+    "Lar": {
+      "title": "Lar",
+      "description": "Uma instituição Residencial Sénior pertencente à rede SeniorCare",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Identificador único da instituição" },
+        "name": { "type": "string", "description": "Nome do Lar" }
+      },
+      "required": ["id", "name"]
+    },
+    "Resident": {
+      "title": "Resident",
+      "description": "Ficha clínica completa de um utente sénior residente",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Identificador único do utente" },
+        "name": { "type": "string", "description": "Nome completo do residente" },
+        "room": { "type": "string", "description": "Número do quarto associado" },
+        "age": { "type": "integer", "description": "Idade em anos" },
+        "avatar": { "type": "string", "description": "URL da foto de perfil ou avatar" },
+        "autonomy": { "type": "string", "enum": ["independente", "parcial", "total"], "description": "Nível de autonomia funcional" },
+        "riskScore": { "type": "integer", "description": "Pontuação clínica de risco de triagem (0-100)" },
+        "riskLevel": { "type": "string", "enum": ["alto", "médio", "baixo"], "description": "Nível de risco clínico categorizado" },
+        "bloodType": { "type": "string", "description": "Grupo sanguíneo (ex: A+, O-)" },
+        "weight": { "type": "number", "description": "Peso corporal atual em kg" },
+        "conditions": { "type": "array", "description": "Lista de patologias e condições médicas" },
+        "allergies": { "type": "array", "description": "Alergias conhecidas e catalogadas" },
+        "vitals": { "type": "object", "description": "Último registo de sinais vitais" },
+        "medications": { "type": "array", "description": "Plano diário de medicamentos prescritos" },
+        "activities": { "type": "array", "description": "Historial clínico integrado de atividades e intervenções" },
+        "hasActiveAlert": { "type": "boolean", "description": "Indica se há chamada de enfermeira ou alerta de emergência ativo" },
+        "birthDate": { "type": "string", "description": "Data de Nascimento (DD/MM/AAAA)" },
+        "gender": { "type": "string", "enum": ["M", "F"], "description": "Sexo / Género (M/F)" },
+        "mobility": { "type": "string", "description": "Mobilidade detalhada para registo tabular" },
+        "generalState": { "type": "string", "description": "Estado geral de saúde" },
+        "responsibleFamily": { "type": "string", "description": "Nome do familiar responsável" },
+        "familyContact": { "type": "string", "description": "Contacto telefónico do familiar" },
+        "agePoints": { "type": "integer", "description": "Pontos clínicos atribuídos à idade" },
+        "mobilityPoints": { "type": "integer", "description": "Pontos clínicos atribuídos ao grau de mobilidade" }
+      },
+      "required": [
+        "id",
+        "name",
+        "room",
+        "age",
+        "avatar",
+        "autonomy",
+        "riskScore",
+        "riskLevel",
+        "bloodType",
+        "weight",
+        "conditions",
+        "allergies",
+        "vitals",
+        "medications",
+        "activities",
+        "hasActiveAlert",
+        "birthDate",
+        "gender",
+        "mobility",
+        "generalState",
+        "responsibleFamily",
+        "familyContact",
+        "agePoints",
+        "mobilityPoints"
+      ]
+    },
+    "Occurrence": {
+      "title": "Occurrence",
+      "description": "Ocorrência clínica ou administrativa registada no histórico central",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Identificador da ocorrência" },
+        "residentId": { "type": "string", "description": "Id do utente afetado" },
+        "residentName": { "type": "string", "description": "Nome do utente no momento do registo" },
+        "residentAvatar": { "type": "string", "description": "Avatar do utente para visualização direta" },
+        "type": { "type": "string", "enum": ["vitals", "fall", "medication", "routine", "behavioral", "other"], "description": "Categoria da ocorrência clinical" },
+        "date": { "type": "string", "description": "Data no formato AAAA-MM-DD" },
+        "time": { "type": "string", "description": "Hora no formato HH:MM" },
+        "description": { "type": "string", "description": "Descrição detalhada do incidente" },
+        "actionTaken": { "type": "string", "description": "Ações e cuidados imediatos prestados" },
+        "vitalsRecorded": { "type": "object", "description": "Parâmetros de sinais vitais registados na ocorrência" }
+      },
+      "required": [
+        "id",
+        "residentId",
+        "residentName",
+        "type",
+        "date",
+        "time",
+        "description"
+      ]
+    },
+    "MedicationRecord": {
+      "title": "MedicationRecord",
+      "description": "Tabela de Medicação do Utente com prescrições e detalhes de dosagem",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Identificador do registo de medicação" },
+        "ID_Utente": { "type": "string", "description": "ID exato do utente associado" },
+        "Medicamento": { "type": "string", "description": "Nome do medicamento prescrito" },
+        "Dosagem": { "type": "string", "description": "Dosagem prescrita (ex: 1 comprimido, 5ml)" },
+        "Horário": { "type": "string", "description": "Horário exato da toma (ex: 08:00, 20:00)" },
+        "Frequência_dia": { "type": "string", "description": "Quantas vezes ao dia (ex: 2x ao dia)" },
+        "Médico_Prescitor": { "type": "string", "description": "Nome do médico prescritor da medicação" },
+        "Data_Início": { "type": "string", "description": "Data de início do tratamento" },
+        "Data_Fim": { "type": "string", "description": "Data prevista de fim do tratamento" }
+      },
+      "required": [
+        "id",
+        "ID_Utente",
+        "Medicamento",
+        "Dosagem",
+        "Horário",
+        "Frequência_dia",
+        "Médico_Prescitor",
+        "Data_Início",
+        "Data_Fim"
+      ]
+    }
+  },
+  "firestore": {
+    "lares/{larId}": {
+      "schema": "Lar",
+      "description": "Registo da instituição sénior"
+    },
+    "lares/{larId}/residents/{residentId}": {
+      "schema": "Resident",
+      "description": "Fichas clínicas dos utentes pertencentes a uma instituição específica"
+    },
+    "lares/{larId}/occurrences/{occurrenceId}": {
+      "schema": "Occurrence",
+      "description": "Histórico de ocorrências clínicas registadas na instituição específica"
+    },
+    "lares/{larId}/medication_records/{medicationRecordId}": {
+      "schema": "MedicationRecord",
+      "description": "Tabela de medicação com as respetivas prescrições dos utentes"
+    }
+  }
+}
