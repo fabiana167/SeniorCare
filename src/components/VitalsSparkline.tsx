@@ -22,23 +22,23 @@ export default function VitalsSparkline({
   const sysPercent = Math.min(Math.max(((systolic - 80) / (180 - 80)) * 100, 20), 100);
 
   const getHeartRateStatus = (hr: number) => {
-    if (hr > 90) return { label: 'Alto', color: 'bg-red-500 text-red-500 bg-red-50 border-red-200' };
-    if (hr < 60) return { label: 'Baixo', color: 'bg-amber-500 text-amber-500 bg-amber-50 border-amber-200' };
-    return { label: 'Normal', color: 'bg-emerald-500 hover:bg-emerald-600 text-emerald-600' };
+    if (hr > 90) return { label: 'Alto', color: 'bg-red-50 text-slate-950 border-red-200' };
+    if (hr < 60) return { label: 'Baixo', color: 'bg-amber-50 text-slate-950 border-amber-200' };
+    return { label: 'Normal', color: 'bg-emerald-50 text-slate-950 border-emerald-200' };
   };
 
   const getBpStatus = (bpStr: string) => {
     const sys = parseInt(bpStr.split('/')[0]) || 120;
-    if (sys > 140) return { label: 'Alto', color: 'bg-red-500 text-red-500 bg-red-50 border-red-200' };
-    if (sys < 90) return { label: 'Baixo', color: 'bg-amber-500 text-amber-500 bg-amber-50 border-amber-200' };
-    return { label: 'Estável', color: 'bg-blue-600 text-blue-700 bg-blue-50 border-blue-200' };
+    if (sys > 140) return { label: 'Alto', color: 'bg-red-50 text-slate-950 border-red-200' };
+    if (sys < 90) return { label: 'Baixo', color: 'bg-amber-50 text-slate-950 border-amber-200' };
+    return { label: 'Estável', color: 'bg-blue-50 text-slate-950 border-blue-200' };
   };
 
   const getTempStatus = (temp: number) => {
-    if (temp >= 37.8) return { label: 'Febre', color: 'bg-red-500 text-red-500 bg-red-50 border-red-200' };
-    if (temp >= 37.3) return { label: 'Subfebril', color: 'bg-amber-500 text-amber-500 bg-amber-50 border-amber-200' };
-    if (temp < 35.5) return { label: 'Hipotermia', color: 'bg-blue-500 text-blue-500 bg-blue-50 border-blue-200' };
-    return { label: 'Normal', color: 'bg-emerald-500 text-emerald-600 bg-emerald-50 border-emerald-200' };
+    if (temp >= 37.8) return { label: 'Febre', color: 'bg-red-50 text-slate-950 border-red-200' };
+    if (temp >= 37.3) return { label: 'Subfebril', color: 'bg-amber-50 text-slate-950 border-amber-200' };
+    if (temp < 35.5) return { label: 'Hipotermia', color: 'bg-blue-50 text-slate-950 border-blue-200' };
+    return { label: 'Normal', color: 'bg-emerald-50 text-slate-950 border-emerald-200' };
   };
 
   const hrStatus = getHeartRateStatus(heartRate);
@@ -58,9 +58,9 @@ export default function VitalsSparkline({
               {hrStatus.label}
             </span>
           </div>
-          <div className="flex items-baseline gap-1 mt-1">
-            <span className="text-3xl font-bold text-slate-900">{heartRate}</span>
-            <span className="text-sm font-semibold text-slate-400">bpm</span>
+          <div className="flex flex-wrap items-baseline gap-1 mt-1">
+            <span className="text-2xl sm:text-3xl font-bold text-slate-900">{heartRate}</span>
+            <span className="text-xs sm:text-sm font-semibold text-slate-400">bpm</span>
           </div>
         </div>
         {/* Sparkline Visual using SVG line */}
@@ -88,9 +88,9 @@ export default function VitalsSparkline({
               {bpStatus.label}
             </span>
           </div>
-          <div className="flex items-baseline gap-1 mt-1">
-            <span className="text-3xl font-bold text-slate-900">{bloodPressure}</span>
-            <span className="text-sm font-semibold text-slate-400">mmHg</span>
+          <div className="flex flex-wrap items-baseline gap-1 mt-1">
+            <span className="text-2xl sm:text-3xl font-bold text-slate-900">{bloodPressure}</span>
+            <span className="text-xs sm:text-sm font-semibold text-slate-400">mmHg</span>
           </div>
         </div>
         {/* Dynamic visual slider */}
@@ -112,13 +112,17 @@ export default function VitalsSparkline({
             <span className="text-xs md:text-sm font-semibold text-slate-500 flex items-center gap-1">
               <Wind className="w-4 h-4 text-emerald-600" /> Saturação SpO2
             </span>
-            <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded border bg-emerald-50 text-emerald-700 border-emerald-100">
+            <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded border ${
+              spo2 >= 95 
+                ? 'bg-emerald-50 text-slate-950 border-emerald-200' 
+                : 'bg-amber-50 text-slate-950 border-amber-200'
+            }`}>
               {spo2 >= 95 ? 'Normal' : 'Atenção'}
             </span>
           </div>
-          <div className="flex items-baseline gap-1 mt-1">
-            <span className="text-3xl font-bold text-slate-900">{spo2}</span>
-            <span className="text-sm font-semibold text-slate-400">%</span>
+          <div className="flex flex-wrap items-baseline gap-1 mt-1">
+            <span className="text-2xl sm:text-3xl font-bold text-slate-900">{spo2}</span>
+            <span className="text-xs sm:text-sm font-semibold text-slate-400">%</span>
           </div>
         </div>
         {/* Inline text metrics icon trend */}
@@ -139,9 +143,9 @@ export default function VitalsSparkline({
               {tempStatus.label}
             </span>
           </div>
-          <div className="flex items-baseline gap-1 mt-1">
-            <span className="text-3xl font-bold text-slate-900">{temperature.toFixed(1)}</span>
-            <span className="text-sm font-semibold text-slate-400">{temperatureUnit}</span>
+          <div className="flex flex-wrap items-baseline gap-1 mt-1">
+            <span className="text-2xl sm:text-3xl font-bold text-slate-900">{temperature.toFixed(1)}</span>
+            <span className="text-xs sm:text-sm font-semibold text-slate-400">{temperatureUnit}</span>
           </div>
         </div>
         {/* Visual range indicator for temperature */}

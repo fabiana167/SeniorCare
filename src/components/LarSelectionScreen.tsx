@@ -22,7 +22,7 @@ export const AVAILABLE_LARES: Lar[] = [
     id: 'lar-belavista',
     name: 'SeniorCare Bela Vista',
     location: 'Lisboa (Alvalade)',
-    residentsCount: 80,
+    residentsCount: 21,
     type: 'Residência Médica Sénior Continuada',
     phone: '+351 213 456 789',
     accentClass: 'text-blue-600 bg-blue-50 border-blue-200',
@@ -34,7 +34,7 @@ export const AVAILABLE_LARES: Lar[] = [
     id: 'lar-jardimflores',
     name: 'SeniorCare Jardim das Flores',
     location: 'Porto (Foz do Douro)',
-    residentsCount: 64,
+    residentsCount: 22,
     type: 'Clínica Geriátrica e Reabilitação',
     phone: '+351 224 891 023',
     accentClass: 'text-emerald-600 bg-emerald-50 border-emerald-200',
@@ -46,7 +46,7 @@ export const AVAILABLE_LARES: Lar[] = [
     id: 'lar-pinhal',
     name: 'SeniorCare Pinhal de Coimbra',
     location: 'Coimbra (Solum)',
-    residentsCount: 50,
+    residentsCount: 22,
     type: 'Lar de Repouso e Vivência Assistida',
     phone: '+351 239 125 432',
     accentClass: 'text-indigo-600 bg-indigo-50 border-indigo-200',
@@ -58,7 +58,7 @@ export const AVAILABLE_LARES: Lar[] = [
     id: 'lar-montesol',
     name: 'SeniorCare Monte do Sol',
     location: 'Faro (Região Central)',
-    residentsCount: 45,
+    residentsCount: 15,
     type: 'Residência Assistida de Cuidados Especiais',
     phone: '+351 289 777 111',
     accentClass: 'text-amber-600 bg-amber-50 border-amber-200',
@@ -69,10 +69,11 @@ export const AVAILABLE_LARES: Lar[] = [
 ];
 
 interface LarSelectionScreenProps {
+  availableLares: Lar[];
   onSelectLar: (lar: Lar) => void;
 }
 
-export default function LarSelectionScreen({ onSelectLar }: LarSelectionScreenProps) {
+export default function LarSelectionScreen({ availableLares, onSelectLar }: LarSelectionScreenProps) {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center px-4 py-12 font-sans md:py-20">
       {/* Brand & Introduction Header */}
@@ -101,7 +102,7 @@ export default function LarSelectionScreen({ onSelectLar }: LarSelectionScreenPr
 
       {/* Grid List of Available Care Homes */}
       <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-6" id="lar-selection-grid">
-        {AVAILABLE_LARES.map((lar, index) => {
+        {availableLares.map((lar, index) => {
           return (
             <motion.div
               key={lar.id}

@@ -454,20 +454,70 @@ export default function SheetsImporter({ selectedLar, triggerToast, onBackToDash
     let successCount = 0;
     
     try {
+      const cleanLarName = selectedLar.name.replace('SeniorCare ', '');
       if (importTarget === 'residents') {
         for (const resident of mappedPreview) {
-          const resRef = doc(db, 'lares', selectedLar.id, 'residents', resident.id);
-          await setDoc(resRef, resident).catch(err => handleFirestoreError(err, OperationType.CREATE, `lares/${selectedLar.id}/residents/${resident.id}`));
+          // 1. Write to top-level 'Utentes'
+          const data = {
+            id: resident.id,
+            ID_Utente: resident.id,
+            Nome: resident.name,
+            Data_Nascimento: resident.birthDate,
+            Idade: resident.age,
+            Sexo: resident.gender,
+            Quarto: resident.room,
+            Mobilidade: resident.mobility,
+            Estado_Geral: resident.generalState,
+            Familiar_Responsável: resident.responsibleFamily,
+            Contacto_Familiar: resident.familyContact,
+            Peso: resident.weight,
+            Tipo_sanguineo: resident.bloodType,
+            Alergias: resident.allergies,
+            Idade_Pontos: resident.agePoints,
+            Mobilidade_Pontos: resident.mobilityPoints
+          };
+          const resRef = doc(db, 'Utentes', resident.id);
+          await setDoc(resRef, data).catch(err => handleFirestoreError(err, OperationType.CREATE, `Utentes/${resident.id}`));
+
+          // 2. Write mapping to top-level 'Lares'
+          const mappingRef = doc(db, 'Lares', resident.id);
+          await setDoc(mappingRef, {
+            id: resident.id,
+            ID_Utente: resident.id,
+            Lar: cleanLarName
+          }).catch(err => handleFirestoreError(err, OperationType.CREATE, `Lares/${resident.id}`));
+
           successCount++;
         }
-        triggerToast(`Sucesso! ${successCount} utentes migrados com sucesso para o banco Firestore do ${selectedLar.name}.`, 'success');
+        triggerToast(`Sucesso! ${successCount} utentes importados com sucesso para a coleção de topo e associados ao ${selectedLar.name}.`, 'success');
       } else {
         for (const occurrence of mappedPreview) {
-          const occRef = doc(db, 'lares', selectedLar.id, 'occurrences', occurrence.id);
-          await setDoc(occRef, occurrence).catch(err => handleFirestoreError(err, OperationType.CREATE, `lares/${selectedLar.id}/occurrences/${occurrence.id}`));
+          const docId = occurrence.id.toLowerCase().startsWith('oc-') ? occurrence.id.toLowerCase() : `oc-${occurrence.id.toLowerCase()}`;
+          const dateString = occurrence.date.replace(/-/g, '/');
+          const timeString = occurrence.time || '08:00';
+          const datetimeStr = `${dateString} ${timeString}:00`;
+
+          const dbOccur = {
+            id: docId,
+            ID_Ocorrencia: occurrence.id,
+            ID_Utente: occurrence.residentId,
+            Tipo_Ocorrência: occurrence.type === 'fall' ? 'Queda' : occurrence.type === 'vitals' ? 'Sinais Vitais' : occurrence.type === 'medication' ? 'Medicação' : 'Outro',
+            Data_Hora: datetimeStr,
+            Data_Hora_Registo: datetimeStr,
+            Gravidade: occurrence.type === 'fall' ? 'Alta' : 'Baixa',
+            Descrição: occurrence.description,
+            Ações_Tomadas: occurrence.actionTaken || 'Supervisionado sem intercorrências imediatas.',
+            Familiar_Responsável: 'Familiar Principal',
+            Encaminhamento_Hospital: false,
+            Internamento: false,
+            Internamento_Pontos: 0
+          };
+
+          const occRef = doc(db, 'Ocorrências', docId);
+          await setDoc(occRef, dbOccur).catch(err => handleFirestoreError(err, OperationType.CREATE, `Ocorrências/${docId}`));
           successCount++;
         }
-        triggerToast(`Sucesso! ${successCount} ocorrências adicionadas diretamente no Firestore para o ${selectedLar.name}.`, 'success');
+        triggerToast(`Sucesso! ${successCount} ocorrências adicionadas diretamente à coleção de topo 'Ocorrências' para o ${selectedLar.name}.`, 'success');
       }
       onBackToDashboard();
     } catch (err: any) {

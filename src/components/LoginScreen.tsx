@@ -1,18 +1,23 @@
 import React, { useState } from 'react';
 import { Activity, Lock, User, Heart, ChevronDown, CheckCircle2, ShieldAlert } from 'lucide-react';
 import { Resident } from '../types';
+import { INITIAL_RESIDENTS } from '../data';
 // @ts-ignore
 import seniorCareLogo from '../assets/images/seniorcare_logo_1779656732247.png';
 
 interface LoginScreenProps {
   residents: Resident[];
   selectedLarName: string;
+  rawFuncionarios: any[];
+  rawFamiliares: any[];
+  dbUtentes: any[];
+  dbLares: any[];
   onBackToLarSelection: () => void;
-  onLogin: (role: 'care_team' | 'family', residentId: string, relativeName: string) => void;
+  onLogin: (role: 'care_team' | 'family', residentId: string, relativeName: string, autoSwitchLar?: string) => void;
   triggerToast: (message: string, type?: 'success' | 'info' | 'error') => void;
 }
 
-export default function LoginScreen({ residents, selectedLarName, onBackToLarSelection, onLogin, triggerToast }: LoginScreenProps) {
+export default function LoginScreen({ residents, selectedLarName, rawFuncionarios, rawFamiliares, dbUtentes, dbLares, onBackToLarSelection, onLogin, triggerToast }: LoginScreenProps) {
   const [activeTab, setActiveTab] = useState<'care_team' | 'family'>('care_team');
 
   // Care Team state
@@ -20,8 +25,9 @@ export default function LoginScreen({ residents, selectedLarName, onBackToLarSel
   const [clinicianPin, setClinicianPin] = useState('');
   
   // Family state
-  const [selectedResidentId, setSelectedResidentId] = useState('');
+  const [relativeEmail, setRelativeEmail] = useState('');
   const [relativeName, setRelativeName] = useState('');
+  const [residentNameInput, setResidentNameInput] = useState('');
   const [familyPin, setFamilyPin] = useState('');
 
   const handleClinicianSubmit = (e: React.FormEvent) => {
@@ -30,10 +36,22 @@ export default function LoginScreen({ residents, selectedLarName, onBackToLarSel
       triggerToast('Por favor, indique o seu nome profissional.', 'error');
       return;
     }
-    // Allow standard PIN or bypass for smooth user-testing
+    
+    // Check clinician in rawFuncionarios
+    const matchedFunc = rawFuncionarios.find(
+      f => f.Nome.toLowerCase().trim() === clinicianName.toLowerCase().trim()
+    );
+
+    if (!matchedFunc) {
+      triggerToast('Acesso recusado. Nome profissional não registado na instituição.', 'error');
+      return;
+    }
+
+    // Pin check (allow 8888 or empty for demonstration)
     if (clinicianPin.trim() === '8888' || clinicianPin.trim() === '') {
-      onLogin('care_team', '', clinicianName.trim());
-      triggerToast(`Sessão iniciada como Equipa de Cuidados: ${clinicianName}`, 'success');
+      const finalName = `${matchedFunc.Cargo}: ${matchedFunc.Nome}`;
+      onLogin('care_team', '', finalName);
+      triggerToast(`Sessão iniciada como ${matchedFunc.Cargo} (${matchedFunc.Departamento}): ${clinicianName}`, 'success');
     } else {
       triggerToast('Palavra-passe incorreta. Utilize a password "8888" ou deixe em branco para teste.', 'error');
     }
@@ -41,24 +59,178 @@ export default function LoginScreen({ residents, selectedLarName, onBackToLarSel
 
   const handleFamilySubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedResidentId) {
-      triggerToast('Por favor, selecione o seu familiar residente.', 'error');
+    if (!relativeEmail.trim()) {
+      triggerToast('Por favor, indique o seu email de familiar.', 'error');
       return;
     }
     if (!relativeName.trim()) {
-      triggerToast('Por favor, indique o seu nome e relação (ex: Fabiana - Filha).', 'error');
+      triggerToast('Por favor, indique o seu nome de familiar.', 'error');
       return;
     }
-    // Simple PIN check for family (room number, 1234, or empty for smooth design demo)
-    const targetResident = residents.find(r => r.id === selectedResidentId);
-    if (!targetResident) return;
+    if (!residentNameInput.trim()) {
+      triggerToast('Por favor, indique o nome do utente.', 'error');
+      return;
+    }
+    
+    // 1. Find relative in rawFamiliares by Email (Requirement 1)
+    const matchedFam = rawFamiliares.find(
+      f => f.Email.toLowerCase().trim() === relativeEmail.toLowerCase().trim()
+    );
 
-    const acceptedPins = ['1234', '1111', targetResident.room.toLowerCase(), ''];
+    if (!matchedFam) {
+      triggerToast('Acesso recusado. Email de familiar não registado nesta instituição.', 'error');
+      return;
+    }
+
+    // Helper to normalize names (lowercase, trim, strip accents)
+    const normalizeName = (name: string) => {
+      return name
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .trim();
+    };
+
+    const cleanInputFam = normalizeName(relativeName);
+    const cleanDbFam = normalizeName(matchedFam.Nome);
+
+    // 2. Validate family member's Name with smart normalization check
+    const inputFamWords = cleanInputFam.split(/\s+/);
+    const dbFamWords = cleanDbFam.split(/\s+/);
+    
+    // Enforce that at least the first name matches, and all entered words exist in the database name
+    const isFamMatch = inputFamWords[0] === dbFamWords[0] && 
+      inputFamWords.every(word => dbFamWords.includes(word));
+
+    if (!isFamMatch) {
+      triggerToast(`Acesso recusado. O nome do familiar não corresponde ao registado para este email.`, 'error');
+      return;
+    }
+
+    // 3. Locate the resident matching matchedFam.ID_Utente in the entire database (unfiltered)
+    const utenteSource = dbUtentes && dbUtentes.length > 0 ? dbUtentes : INITIAL_RESIDENTS;
+    const targetUtente = utenteSource.find(u => (u.ID_Utente || u.id) === matchedFam.ID_Utente);
+    
+    if (!targetUtente) {
+      triggerToast('Acesso recusado. O utente associado a este familiar não foi encontrado no sistema.', 'error');
+      return;
+    }
+
+    const cleanInputRes = normalizeName(residentNameInput);
+    const cleanDbRes = normalizeName(targetUtente.Nome || targetUtente.name);
+
+    // 4. Validate resident's entered Name (Requirement 2)
+    const inputResWords = cleanInputRes.split(/\s+/);
+    const dbResWords = cleanDbRes.split(/\s+/);
+
+    const isResMatch = inputResWords[0] === dbResWords[0] && 
+      inputResWords.every(word => dbResWords.includes(word));
+    
+    if (!isResMatch) {
+      triggerToast(`Acesso recusado. O nome do utente introduzido não corresponde ao familiar registado.`, 'error');
+      return;
+    }
+
+    // 5. Get the Lar name where the resident actually belongs
+    const mockLaresMappings = [
+      { ID_Utente: "UT-001", Lar: "Monte do Sol" },
+      { ID_Utente: "UT-002", Lar: "Pinhal de Coimbra" },
+      { ID_Utente: "UT-003", Lar: "Bela Vista" },
+      { ID_Utente: "UT-004", Lar: "Jardim das Flores" },
+      { ID_Utente: "UT-005", Lar: "Pinhal de Coimbra" },
+      { ID_Utente: "UT-006", Lar: "Jardim das Flores" },
+      { ID_Utente: "UT-007", Lar: "Monte do Sol" },
+      { ID_Utente: "UT-008", Lar: "Jardim das Flores" },
+      { ID_Utente: "UT-009", Lar: "Pinhal de Coimbra" },
+      { ID_Utente: "UT-010", Lar: "Jardim das Flores" },
+      { ID_Utente: "UT-011", Lar: "Bela Vista" },
+      { ID_Utente: "UT-012", Lar: "Pinhal de Coimbra" },
+      { ID_Utente: "UT-013", Lar: "Jardim das Flores" },
+      { ID_Utente: "UT-014", Lar: "Jardim das Flores" },
+      { ID_Utente: "UT-015", Lar: "Pinhal de Coimbra" },
+      { ID_Utente: "UT-016", Lar: "Bela Vista" },
+      { ID_Utente: "UT-017", Lar: "Pinhal de Coimbra" },
+      { ID_Utente: "UT-018", Lar: "Pinhal de Coimbra" },
+      { ID_Utente: "UT-019", Lar: "Jardim das Flores" },
+      { ID_Utente: "UT-020", Lar: "Jardim das Flores" },
+      { ID_Utente: "UT-021", Lar: "Monte do Sol" },
+      { ID_Utente: "UT-022", Lar: "Monte do Sol" },
+      { ID_Utente: "UT-023", Lar: "Monte do Sol" },
+      { ID_Utente: "UT-024", Lar: "Bela Vista" },
+      { ID_Utente: "UT-025", Lar: "Bela Vista" },
+      { ID_Utente: "UT-026", Lar: "Pinhal de Coimbra" },
+      { ID_Utente: "UT-027", Lar: "Pinhal de Coimbra" },
+      { ID_Utente: "UT-028", Lar: "Monte do Sol" },
+      { ID_Utente: "UT-029", Lar: "Pinhal de Coimbra" },
+      { ID_Utente: "UT-030", Lar: "Monte do Sol" },
+      { ID_Utente: "UT-031", Lar: "Jardim das Flores" },
+      { ID_Utente: "UT-032", Lar: "Jardim das Flores" },
+      { ID_Utente: "UT-033", Lar: "Jardim das Flores" },
+      { ID_Utente: "UT-034", Lar: "Jardim das Flores" },
+      { ID_Utente: "UT-035", Lar: "Jardim das Flores" },
+      { ID_Utente: "UT-036", Lar: "Monte do Sol" },
+      { ID_Utente: "UT-037", Lar: "Bela Vista" },
+      { ID_Utente: "UT-038", Lar: "Monte do Sol" },
+      { ID_Utente: "UT-039", Lar: "Pinhal de Coimbra" },
+      { ID_Utente: "UT-040", Lar: "Pinhal de Coimbra" },
+      { ID_Utente: "UT-041", Lar: "Jardim das Flores" },
+      { ID_Utente: "UT-042", Lar: "Jardim das Flores" },
+      { ID_Utente: "UT-043", Lar: "Pinhal de Coimbra" },
+      { ID_Utente: "UT-044", Lar: "Bela Vista" },
+      { ID_Utente: "UT-045", Lar: "Bela Vista" },
+      { ID_Utente: "UT-046", Lar: "Monte do Sol" },
+      { ID_Utente: "UT-047", Lar: "Jardim das Flores" },
+      { ID_Utente: "UT-048", Lar: "Jardim das Flores" },
+      { ID_Utente: "UT-049", Lar: "Pinhal de Coimbra" },
+      { ID_Utente: "UT-050", Lar: "Bela Vista" },
+      { ID_Utente: "UT-051", Lar: "Pinhal de Coimbra" },
+      { ID_Utente: "UT-052", Lar: "Pinhal de Coimbra" },
+      { ID_Utente: "UT-053", Lar: "Pinhal de Coimbra" },
+      { ID_Utente: "UT-054", Lar: "Bela Vista" },
+      { ID_Utente: "UT-055", Lar: "Monte do Sol" },
+      { ID_Utente: "UT-056", Lar: "Bela Vista" },
+      { ID_Utente: "UT-057", Lar: "Bela Vista" },
+      { ID_Utente: "UT-058", Lar: "Bela Vista" },
+      { ID_Utente: "UT-059", Lar: "Jardim das Flores" },
+      { ID_Utente: "UT-060", Lar: "Monte do Sol" },
+      { ID_Utente: "UT-061", Lar: "Pinhal de Coimbra" },
+      { ID_Utente: "UT-062", Lar: "Monte do Sol" },
+      { ID_Utente: "UT-063", Lar: "Pinhal de Coimbra" },
+      { ID_Utente: "UT-064", Lar: "Bela Vista" },
+      { ID_Utente: "UT-065", Lar: "Jardim das Flores" },
+      { ID_Utente: "UT-066", Lar: "Bela Vista" },
+      { ID_Utente: "UT-067", Lar: "Bela Vista" },
+      { ID_Utente: "UT-068", Lar: "Pinhal de Coimbra" },
+      { ID_Utente: "UT-069", Lar: "Bela Vista" },
+      { ID_Utente: "UT-070", Lar: "Pinhal de Coimbra" },
+      { ID_Utente: "UT-071", Lar: "Bela Vista" },
+      { ID_Utente: "UT-072", Lar: "Bela Vista" },
+      { ID_Utente: "UT-073", Lar: "Bela Vista" },
+      { ID_Utente: "UT-074", Lar: "Jardim das Flores" },
+      { ID_Utente: "UT-075", Lar: "Jardim das Flores" },
+      { ID_Utente: "UT-076", Lar: "Pinhal de Coimbra" },
+      { ID_Utente: "UT-077", Lar: "Bela Vista" },
+      { ID_Utente: "UT-078", Lar: "Jardim das Flores" },
+      { ID_Utente: "UT-079", Lar: "Monte do Sol" },
+      { ID_Utente: "UT-080", Lar: "Monte do Sol" }
+    ];
+
+    const laresSource = dbLares && dbLares.length > 0 ? dbLares : mockLaresMappings;
+    const mapping = laresSource.find(m => m && (m.ID_Utente === targetUtente.id || m.ID_Utente === targetUtente.ID_Utente));
+    const targetLarName = mapping ? mapping.Lar : '';
+
+    // Simple PIN check for family (room number, 1234, or empty for smooth design demo)
+    const roomVal = targetUtente.Quarto || targetUtente.room || '100';
+    const acceptedPins = ['1234', '1111', roomVal.toLowerCase(), ''];
     if (acceptedPins.includes(familyPin.trim().toLowerCase())) {
-      onLogin('family', selectedResidentId, relativeName);
-      triggerToast(`Bem-vindo, ${relativeName}! Portal do familiar iniciado.`, 'success');
+      onLogin('family', targetUtente.id || targetUtente.ID_Utente, matchedFam.Nome, targetLarName);
+      if (targetLarName && targetLarName !== selectedLarName.replace('SeniorCare ', '')) {
+        triggerToast(`Redirecionando sessão para a unidade correta: ${targetLarName}`, 'info');
+      } else {
+        triggerToast(`Bem-vindo, ${matchedFam.Nome}! Portal do familiar iniciado.`, 'success');
+      }
     } else {
-      triggerToast(`Código incorreto. Introduza o PIN padrão "1234" ou o número do quarto "${targetResident.room}".`, 'error');
+      triggerToast(`Código incorreto. Introduza o PIN padrão "1234" ou o número do quarto "${roomVal}".`, 'error');
     }
   };
 
@@ -103,7 +275,7 @@ export default function LoginScreen({ residents, selectedLarName, onBackToLarSel
             onClick={() => setActiveTab('care_team')}
             className={`flex-1 py-4 text-center text-sm font-bold transition-all relative flex items-center justify-center gap-2 ${
               activeTab === 'care_team'
-                ? 'text-blue-700 bg-white border-b-2 border-blue-600'
+                ? 'text-blue-700 bg-white border-b-2 border-blue-605'
                 : 'text-slate-500 hover:text-slate-800'
             }`}
           >
@@ -114,7 +286,7 @@ export default function LoginScreen({ residents, selectedLarName, onBackToLarSel
             onClick={() => setActiveTab('family')}
             className={`flex-1 py-4 text-center text-sm font-bold transition-all relative flex items-center justify-center gap-2 ${
               activeTab === 'family'
-                ? 'text-blue-700 bg-white border-b-2 border-blue-600'
+                ? 'text-blue-700 bg-white border-b-2 border-blue-606'
                 : 'text-slate-500 hover:text-slate-800'
             }`}
           >
@@ -203,35 +375,26 @@ export default function LoginScreen({ residents, selectedLarName, onBackToLarSel
                 </div>
               </div>
 
-              {/* Resident Dropdown Selection */}
+              {/* Family relative Email */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-slate-700" htmlFor="family-resident">
-                  Selecione o Utente (Familiar) <span className="text-red-500">*</span>
+                <label className="text-xs font-bold text-slate-700" htmlFor="family-email">
+                  O Seu Email de Familiar <span className="text-red-500">*</span>
                 </label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 pointer-events-none" />
-                  <select
-                    id="family-resident"
-                    required
-                    value={selectedResidentId}
-                    onChange={(e) => setSelectedResidentId(e.target.value)}
-                    className="w-full pl-9 pr-8 py-2.5 border border-slate-200 bg-slate-50 rounded-xl text-sm focus:outline-none focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-50 transition-all font-semibold appearance-none cursor-pointer"
-                  >
-                    <option value="">Selecione o utente correspondente...</option>
-                    {residents.map((r) => (
-                      <option key={r.id} value={r.id}>
-                        {r.name} (Quarto {r.room})
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 w-4.5 h-4.5 pointer-events-none" />
-                </div>
+                <input
+                  type="email"
+                  id="family-email"
+                  required
+                  value={relativeEmail}
+                  onChange={(e) => setRelativeEmail(e.target.value)}
+                  placeholder="Ex: daniel.ferreira@gmail.com"
+                  className="w-full px-4 py-2.5 text-slate-700 text-sm border border-slate-200 rounded-xl bg-slate-50 focus:outline-none focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-50 transition-all font-semibold"
+                />
               </div>
 
               {/* Family relative name */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-bold text-slate-700" htmlFor="family-relative">
-                  O Seu Nome e Parêntesco <span className="text-red-500">*</span>
+                  O Seu Nome Completo <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -239,7 +402,23 @@ export default function LoginScreen({ residents, selectedLarName, onBackToLarSel
                   required
                   value={relativeName}
                   onChange={(e) => setRelativeName(e.target.value)}
-                  placeholder="Ex: Fabiana Silva (Filha)"
+                  placeholder="Ex: Daniel Ferreira"
+                  className="w-full px-4 py-2.5 text-slate-700 text-sm border border-slate-200 rounded-xl bg-slate-50 focus:outline-none focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-50 transition-all font-semibold"
+                />
+              </div>
+
+              {/* Resident / Utente Name Input */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-slate-700" htmlFor="family-resident-name">
+                  Nome do Familiar Residente (Utente) <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="family-resident-name"
+                  required
+                  value={residentNameInput}
+                  onChange={(e) => setResidentNameInput(e.target.value)}
+                  placeholder="Ex: Carlos Silva"
                   className="w-full px-4 py-2.5 text-slate-700 text-sm border border-slate-200 rounded-xl bg-slate-50 focus:outline-none focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-50 transition-all font-semibold"
                 />
               </div>
@@ -248,7 +427,7 @@ export default function LoginScreen({ residents, selectedLarName, onBackToLarSel
               <div className="flex flex-col gap-1.5">
                 <div className="flex justify-between items-center">
                   <label className="text-xs font-bold text-slate-700" htmlFor="family-pin">
-                    Código PIN de Segurança <span className="text-red-500">*</span>
+                     Código PIN de Segurança <span className="text-red-500">*</span>
                   </label>
                   <span className="text-[10px] text-slate-400 font-semibold">Usa PIN '1234' para teste</span>
                 </div>

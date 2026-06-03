@@ -32,6 +32,7 @@ export default function MedicationsTable({
   const [formHorario, setFormHorario] = useState('08:00');
   const [formFrequencia, setFormFrequencia] = useState('1x ao dia');
   const [formMedico, setFormMedico] = useState('');
+  const [formIdMedicamento, setFormIdMedicamento] = useState('');
   const [formDataInicio, setFormDataInicio] = useState(() => {
     return new Date().toISOString().split('T')[0].split('-').reverse().join('/');
   });
@@ -79,7 +80,8 @@ export default function MedicationsTable({
         Frequência_dia: formFrequencia.trim(),
         Médico_Prescitor: formMedico.trim(),
         Data_Início: formDataInicio,
-        Data_Fim: formDataFim
+        Data_Fim: formDataFim,
+        ID_Medicamento: formIdMedicamento.trim() || `MED-${String(Date.now()).substring(7)}`
       };
 
       // Firestore doc path: lares/{larId}/medication_records/{id}
@@ -91,6 +93,7 @@ export default function MedicationsTable({
       // Close and reset form
       setIsAddFormOpen(false);
       setFormMedicamento('');
+      setFormIdMedicamento('');
       setFormDosagem('');
       setFormMedico('');
     } catch (err: any) {
@@ -178,7 +181,7 @@ export default function MedicationsTable({
         </div>
 
         <div className="bg-white rounded-xl p-4 border border-slate-200 flex items-center gap-3 shadow-xs">
-          <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-650 font-bold">
+          <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-655 font-bold">
             <User className="w-5 h-5 text-emerald-600" />
           </div>
           <div>
@@ -190,7 +193,7 @@ export default function MedicationsTable({
         </div>
 
         <div className="bg-white rounded-xl p-4 border border-slate-200 flex items-center gap-3 shadow-xs">
-          <div className="w-9 h-9 rounded-lg bg-orange-50 flex items-center justify-center text-orange-650 font-bold">
+          <div className="w-9 h-9 rounded-lg bg-orange-50 flex items-center justify-center text-orange-655 font-bold">
             <RefreshCw className="w-5 h-5 text-orange-600" />
           </div>
           <div>
@@ -241,6 +244,7 @@ export default function MedicationsTable({
               <tr className="bg-slate-50 text-slate-400 text-[10px] font-extrabold uppercase tracking-wider border-b border-slate-200">
                 <th className="py-3 px-4">ID_Utente / Nome</th>
                 <th className="py-3 px-4">Medicamento</th>
+                <th className="py-3 px-4">ID_Medicamento</th>
                 <th className="py-3 px-4">Dosagem</th>
                 <th className="py-3 px-4">Horário</th>
                 <th className="py-3 px-4">Frequência/Dia</th>
@@ -253,7 +257,7 @@ export default function MedicationsTable({
             <tbody className="divide-y divide-slate-100 text-xs font-semibold text-slate-700">
               {filteredRecords.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="py-12 text-center text-slate-400 uppercase tracking-wider font-bold">
+                  <td colSpan={10} className="py-12 text-center text-slate-400 uppercase tracking-wider font-bold">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <AlertTriangle className="w-8 h-8 text-slate-300" />
                       Nenhum registo de medicação correspondente
@@ -292,6 +296,15 @@ export default function MedicationsTable({
                             className="bg-white border border-slate-300 rounded px-2 py-1 w-full text-xs font-medium focus:outline-none focus:border-blue-500" 
                             value={editingRecord.Medicamento}
                             onChange={(e) => setEditingRecord({ ...editingRecord, Medicamento: e.target.value })}
+                          />
+                        </td>
+                        {/* ID_MEDICAMENTO */}
+                        <td className="py-3 px-4">
+                          <input 
+                            type="text" 
+                            className="bg-white border border-slate-300 rounded px-2 py-1 w-full text-xs font-semibold focus:outline-none focus:border-blue-500 font-mono text-slate-500" 
+                            value={editingRecord.ID_Medicamento}
+                            onChange={(e) => setEditingRecord({ ...editingRecord, ID_Medicamento: e.target.value })}
                           />
                         </td>
                         {/* DOSAGEM */}
@@ -394,6 +407,10 @@ export default function MedicationsTable({
                       {/* MEDICAMENTO */}
                       <td className="py-3.5 px-4 font-bold text-blue-900">
                         {rec.Medicamento}
+                      </td>
+                      {/* ID_MEDICAMENTO */}
+                      <td className="py-3.5 px-4 font-semibold font-mono text-slate-550">
+                        {rec.ID_Medicamento}
                       </td>
 
                       {/* DOSAGEM */}
@@ -514,6 +531,17 @@ export default function MedicationsTable({
                     className="w-full p-2.5 border border-slate-200 rounded-lg text-xs bg-slate-50 focus:outline-none focus:border-blue-500 font-semibold text-slate-700 placeholder:text-slate-400"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Código ID_Medicamento <span className="text-slate-400">(Opcional)</span></label>
+                <input
+                  type="text"
+                  placeholder="Ex: MED-001 (Deixe em branco para gerar auto)"
+                  value={formIdMedicamento}
+                  onChange={(e) => setFormIdMedicamento(e.target.value)}
+                  className="w-full p-2.5 border border-slate-200 rounded-lg text-xs bg-slate-50 focus:outline-none focus:border-blue-500 font-semibold text-slate-700 placeholder:text-slate-400 font-mono"
+                />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
