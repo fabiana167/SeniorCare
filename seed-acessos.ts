@@ -1,0 +1,149 @@
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
+import { initializeApp } from 'firebase/app';
+import { getFirestore, doc, setDoc } from 'firebase/firestore';
+
+// Ler configuração do Firebase
+const firebaseConfig = JSON.parse(readFileSync(resolve('./firebase-applet-config.json'), 'utf-8'));
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// Dataset de Acessos fornecido pelo utilizador (80 registos)
+const RAW_DATA = `LOG-001	FUNC-001	UT-001	2026/05/01 08:00:00	2026/05/01 08:02:00	103
+LOG-002	FUNC-002	UT-002	2026/05/01 08:05:00	2026/05/01 08:07:00	116
+LOG-003	FUNC-003	UT-003\t2026/05/01 08:10:00	2026/05/01 08:12:00\t129
+LOG-004	FUNC-004	UT-004	2026/05/01 08:15:00\t2026/05/01 08:17:00\t142
+LOG-005	FUNC-005	UT-005	2026/05/01 08:20:00	2026/05/01 08:22:00\t155
+LOG-006	FUNC-006	UT-006	2026/05/01 08:25:00	2026/05/01 08:27:00\t168
+LOG-007\tFUNC-007\tUT-007\t2026/05/01 08:30:00\t2026/05/01 08:32:00\t181
+LOG-008\tFUNC-008\tUT-008\t2026/05/01 08:35:00\t2026/05/01 08:37:00\t194
+LOG-009\tFUNC-009\tUT-009\t2026/05/01 08:40:00\t2026/05/01 08:42:00\t207
+LOG-010\tFUNC-010\tUT-010\t2026/05/01 08:45:00\t2026/05/01 08:47:00\t220
+LOG-011\tFUNC-011\tUT-011\t2026/05/01 08:50:00\t2026/05/01 08:52:00\t233
+LOG-012\tFUNC-012\tUT-012\t2026/05/01 08:55:00\t2026/05/01 08:57:00\t246
+LOG-013\tFUNC-013\tUT-013\t2026/05/01 09:00:00\t2026/05/01 09:02:00\t259
+LOG-014\tFUNC-014\tUT-014\t2026/05/01 09:05:00\t2026/05/01 09:07:00\t92
+LOG-015\tFUNC-015\tUT-015\t2026/05/01 09:10:00\t2026/05/01 09:12:00\t105
+LOG-016\tFUNC-016\tUT-016\t2026/05/01 09:15:00\t2026/05/01 09:17:00\t118
+LOG-017\tFUNC-017\tUT-017\t2026/05/01 09:20:00\t2026/05/01 09:22:00\t131
+LOG-018\tFUNC-018\tUT-018\t2026/05/01 09:25:00\t2026/05/01 09:27:00\t144
+LOG-019\tFUNC-019\tUT-019\t2026/05/01 09:30:00\t2026/05/01 09:32:00\t157
+LOG-020\tFUNC-020\tUT-020\t2026/05/01 09:35:00\t2026/05/01 09:37:00\t170
+LOG-021\tFUNC-001\tUT-021\t2026/05/01 09:40:00\t2026/05/01 09:42:00\t183
+LOG-022\tFUNC-002\tUT-022\t2026/05/01 09:45:00\t2026/05/01 09:47:00\t196
+LOG-023\tFUNC-003\tUT-023\t2026/05/01 09:50:00\t2026/05/01 09:52:00\t209
+LOG-024\tFUNC-004\tUT-024\t2026/05/01 09:55:00\t2026/05/01 09:57:00\t222
+LOG-025\tFUNC-005\tUT-025\t2026/05/01 10:00:00\t2026/05/01 10:02:00\t235
+LOG-026\tFUNC-006\tUT-026\t2026/05/01 10:05:00\t2026/05/01 10:07:00\t248
+LOG-027\tFUNC-007\tUT-027\t2026/05/01 10:10:00\t2026/05/01 10:12:00\t91
+LOG-028\tFUNC-008\tUT-028\t2026/05/01 10:15:00\t2026/05/01 10:17:00\t104
+LOG-029\tFUNC-009\tUT-029\t2026/05/01 10:20:00\t2026/05/01 10:22:00\t117
+LOG-030\tFUNC-010\tUT-030\t2026/05/01 10:25:00\t2026/05/01 10:27:00\t130
+LOG-031\tFUNC-011\tUT-031\t2026/05/01 10:30:00\t2026/05/01 10:32:00\t143
+LOG-032\tFUNC-012\tUT-032\t2026/05/01 10:35:00\t2026/05/01 10:37:00\t156
+LOG-033\tFUNC-013\tUT-033\t2026/05/01 10:40:00\t2026/05/01 10:42:00\t169
+LOG-034\tFUNC-014\tUT-034\t2026/05/01 10:45:00\t2026/05/01 10:47:00\t182
+LOG-035\tFUNC-015\tUT-035\t2026/05/01 10:50:00\t2026/05/01 10:52:00\t195
+LOG-036\tFUNC-016\tUT-036\t2026/05/01 10:55:00\t2026/05/01 10:57:00\t208
+LOG-037\tFUNC-017\tUT-037\t2026/05/01 11:00:00\t2026/05/01 11:02:00\t221
+LOG-038\tFUNC-018\tUT-038\t2026/05/01 11:05:00\t2026/05/01 11:07:00\t234
+LOG-039\tFUNC-019\tUT-039\t2026/05/01 11:10:00\t2026/05/01 11:12:00\t247
+LOG-040\tFUNC-020\tUT-040\t2026/05/01 11:15:00\t2026/05/01 11:17:00\t90
+LOG-041\tFUNC-001\tUT-041\t2026/05/01 11:20:00\t2026/05/01 11:22:00\t103
+LOG-042\tFUNC-002\tUT-042\t2026/05/01 11:25:00\t2026/05/01 11:27:00\t116
+LOG-043\tFUNC-003\tUT-043\t2026/05/01 11:30:00\t2026/05/01 11:32:00\t129
+LOG-044\tFUNC-004\tUT-044\t2026/05/01 11:35:00\t2026/05/01 11:37:00\t142
+LOG-045\tFUNC-005\tUT-045\t2026/05/01 11:40:00\t2026/05/01 11:42:00\t155
+LOG-046\tFUNC-006\tUT-046\t2026/05/01 11:45:00\t2026/05/01 11:47:00\t168
+LOG-047\tFUNC-007\tUT-047\t2026/05/01 11:50:00\t2026/05/01 11:52:00\t181
+LOG-048\tFUNC-008\tUT-048\t2026/05/01 11:55:00\t2026/05/01 11:57:00\t194
+LOG-049\tFUNC-009\tUT-049\t2026/05/01 12:00:00\t2026/05/01 12:02:00\t207
+LOG-050\tFUNC-010\tUT-050\t2026/05/01 12:05:00\t2026/05/01 12:07:00\t220
+LOG-051\tFUNC-011\tUT-051\t2026/05/01 12:10:00\t2026/05/01 12:12:00\t233
+LOG-052\tFUNC-012\tUT-052\t2026/05/01 12:15:00\t2026/05/01 12:17:00\t246
+LOG-053\tFUNC-013\tUT-053\t2026/05/01 12:20:00\t2026/05/01 12:22:00\t259
+LOG-054\tFUNC-014\tUT-054\t2026/05/01 12:25:00\t2026/05/01 12:27:00\t92
+LOG-055\tFUNC-015\tUT-055\t2026/05/01 12:30:00\t2026/05/01 12:32:00\t105
+LOG-056\tFUNC-016\tUT-056\t2026/05/01 12:35:00\t2026/05/01 12:37:00\t118
+LOG-057\tFUNC-017\tUT-057\t2026/05/01 12:40:00\t2026/05/01 12:42:00\t131
+LOG-058\tFUNC-018\tUT-058\t2026/05/01 12:45:00\t2026/05/01 12:47:00\t144
+LOG-059\tFUNC-019\tUT-059\t2026/05/01 12:50:00\t2026/05/01 12:52:00\t157
+LOG-060\tFUNC-020\tUT-060\t2026/05/01 12:55:00\t2026/05/01 12:57:00\t170
+LOG-061\tFUNC-001\tUT-061\t2026/05/01 13:00:00\t2026/05/01 13:02:00\t183
+LOG-062\tFUNC-002\tUT-062\t2026/05/01 13:05:00\t2026/05/01 13:07:00\t196
+LOG-063\tFUNC-003\tUT-063\t2026/05/01 13:10:00\t2026/05/01 13:12:00\t209
+LOG-064\tFUNC-004\tUT-064\t2026/05/01 13:15:00\t2026/05/01 13:17:00\t222
+LOG-065\tFUNC-005\tUT-065\t2026/05/01 13:20:00\t2026/05/01 13:22:00\t235
+LOG-066\tFUNC-006\tUT-066\t2026/05/01 13:25:00\t2026/05/01 13:27:00\t248
+LOG-067\tFUNC-007\tUT-067\t2026/05/01 13:30:00\t2026/05/01 13:32:00\t91
+LOG-068\tFUNC-008\tUT-068\t2026/05/01 13:35:00\t2026/05/01 13:37:00\t104
+LOG-069\tFUNC-009\tUT-069\t2026/05/01 13:40:00\t2026/05/01 13:42:00\t117
+LOG-070\tFUNC-010\tUT-070\t2026/05/01 13:45:00\t2026/05/01 13:47:00\t130
+LOG-071\tFUNC-011\tUT-071\t2026/05/01 13:50:00\t2026/05/01 13:52:00\t143
+LOG-072\tFUNC-012\tUT-072\t2026/05/01 13:55:00\t2026/05/01 13:57:00\t156
+LOG-073\tFUNC-013\tUT-073\t2026/05/01 14:00:00\t2026/05/01 14:02:00\t169
+LOG-074\tFUNC-014\tUT-074\t2026/05/01 14:05:00\t2026/05/01 14:07:00\t182
+LOG-075\tFUNC-015\tUT-075\t2026/05/01 14:10:00\t2026/05/01 14:12:00\t195
+LOG-076\tFUNC-016\tUT-076\t2026/05/01 14:15:00\t2026/05/01 14:17:00\t208
+LOG-077\tFUNC-017\tUT-077\t2026/05/01 14:20:00\t2026/05/01 14:22:00\t221
+LOG-078\tFUNC-018\tUT-078\t2026/05/01 14:25:00\t2026/05/01 14:27:00\t234
+LOG-079\tFUNC-019\tUT-079\t2026/05/01 14:30:00\t2026/05/01 14:32:00\t247
+LOG-080\tFUNC-020\tUT-080\t2026/05/01 14:35:00\t2026/05/01 14:37:00\t90`;
+
+async function main() {
+  console.log('Iniciando o carregamento dos dados exatos de Acessos...');
+  console.log(`Projeto ID: ${firebaseConfig.projectId}`);
+
+  const lines = RAW_DATA.trim().split('\n');
+  console.log(`Total de linhas detetadas no dataset: ${lines.length}`);
+  let successCount = 0;
+
+  for (const line of lines) {
+    if (!line.trim()) continue;
+
+    let parts = line.split('\t').map(p => p.trim());
+    if (parts.length < 6) {
+      parts = line.split(/\s{2,}/).map(p => p.trim());
+    }
+
+    if (parts.length < 6) {
+      console.error(`✗ Erro ao processar linha: "${line}". Esperadas pelo menos 6 colunas, obtidas ${parts.length}.`);
+      continue;
+    }
+
+    const idLog = parts[0];
+    const idFuncionario = parts[1];
+    const idUtente = parts[2];
+    const dataHoraLogin = parts[3];
+    const dataHoraAcessoHistorico = parts[4];
+    const tempoAcessoSegundos = parseInt(parts[5], 10);
+
+    const docId = `log-${idLog.toLowerCase()}`;
+    const docRef = doc(db, 'acessos', docId);
+
+    const data = {
+      id: docId,
+      ID_Log: idLog,
+      ID_Funcionário: idFuncionario,
+      ID_Utente: idUtente,
+      Data_hora_login: dataHoraLogin,
+      Data_Hora_Acesso_Histórico: dataHoraAcessoHistorico,
+      Tempo_Acesso_Segundos: tempoAcessoSegundos
+    };
+
+    try {
+      await setDoc(docRef, data);
+      successCount++;
+    } catch (e: any) {
+      console.error(`✗ Erro ao carregar acesso ${idLog}:`, e.message);
+    }
+  }
+
+  console.log(`\n✓ Processo concluído! ${successCount}/${lines.length} acessos carregados no Firebase.`);
+  process.exit(0);
+}
+
+main().catch(err => {
+  console.error('Erro fatal:', err);
+  process.exit(1);
+});
