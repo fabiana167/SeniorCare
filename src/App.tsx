@@ -437,6 +437,7 @@ export default function App() {
       { ID_Utente: "UT-073", Lar: "Bela Vista" },
       { ID_Utente: "UT-074", Lar: "Jardim das Flores" },
       { ID_Utente: "UT-075", Lar: "Jardim das Flores" },
+      { ID_Utente: "UT-076", Pinhal de Coimbra: "Pinhal de Coimbra" },
       { ID_Utente: "UT-076", Lar: "Pinhal de Coimbra" },
       { ID_Utente: "UT-077", Lar: "Bela Vista" },
       { ID_Utente: "UT-078", Lar: "Jardim das Flores" },
@@ -1582,7 +1583,7 @@ export default function App() {
           )}
         </div>
 
-        {/* Action buttons */}
+        {/* Global Action Add trigger and Logout buttons */}
         <div className="flex items-center gap-2.5">
           <button 
             onClick={() => handleTabChange('sheets-import')}
@@ -1778,7 +1779,7 @@ export default function App() {
 
                   <div className="pt-4 border-t border-slate-100 text-center">
                     <p className="text-xs text-slate-400 font-semibold flex items-center justify-center gap-1">
-                      <RefreshCw className="w-3.5 h-3.5 text-slate-300 shrink-0" /> Dados atualizados em tempo real
+                      <RefreshCw className="w-3.5 h-3.5 text-slate-300 shrink-0 animate-spin-slow" /> Dados atualizados há 2 mins
                     </p>
                   </div>
                 </div>
@@ -2100,7 +2101,8 @@ export default function App() {
               )
             ) : (
               <div className="bg-white rounded-xl border border-dashed border-slate-300 py-16 text-center text-slate-400">
-                <p className="font-semibold text-sm">Nenhum utente corresponde aos filtros aplicados.</p>
+                <Users className="w-10 h-10 mx-auto opacity-30 mb-2" />
+                <p className="font-semibold text-sm">Nenhum utente corresponds aos filtros aplicados.</p>
                 <button 
                   onClick={() => {
                     setSearchQuery('');
@@ -2158,7 +2160,7 @@ export default function App() {
                   className="w-full pl-9 pr-4 py-2 text-slate-700 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 font-semibold appearance-none cursor-pointer"
                 >
                   <option value="todos">Todos os Períodos</option>
-                  <option value="hoje">Hoje</option>
+                  <option value="hoje">Hoje (23 Maio)</option>
                   <option value="7dias">Últimos 7 Dias</option>
                   <option value="30dias">Últimos 30 dias</option>
                 </select>
@@ -2383,7 +2385,7 @@ export default function App() {
                         placeholder="Ex: 36.6"
                         className="w-full pl-3 pr-1 py-1.5 bg-white border border-r-0 border-slate-200 rounded-l-lg text-sm text-slate-700 focus:outline-none focus:border-blue-500 font-semibold placeholder:text-slate-300"
                       />
-                      <span className="px-2 py-2 bg-slate-100 border border-slate-200 text-[10px] font-bold text-slate-400 rounded-r-lg">°C</span>
+                      <span className="px-2 py-2 bg-slate-100 border border-slate-200 text-[10px] font-bold text-slate-400 rounded-r-lg uppercase">°C</span>
                     </div>
                   </div>
                 </div>
@@ -2391,10 +2393,10 @@ export default function App() {
 
               {/* SECTION III: CLINICAL DESCRIPTION */}
               <div className="flex flex-col gap-4">
-                <h3 className="text-sm font-bold uppercase tracking-widest text-slate-400 border-b border-slate-100 pb-2">Detalhes da Ocorrência</h3>
+                <h3 className="text-sm font-bold uppercase tracking-widest text-slate-400 border-b border-slate-100 pb-2">Descrição da Ocorrência</h3>
                 
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-slate-700">Descrição Clínica Ocorrência <span className="text-red-500">*</span></label>
+                  <label className="text-xs font-bold text-slate-700">Relatório da Equipa de Enfermagem <span className="text-red-600">*</span></label>
                   <textarea
                     required
                     rows={4}
@@ -2641,6 +2643,7 @@ export default function App() {
                   >
                     Atividades ({selectedResident.activities.length})
                   </button>
+
 
                 </div>
 
