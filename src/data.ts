@@ -1,4 +1,4 @@
-import { Resident, Occurrence, AutonomyType, RiskLevelType, ActivityLog, Medication, MedicationRecord } from './types';
+import { Resident, Occurrence, AutonomyType, RiskLevelType, ActivityLog, Medication, MedicationRecord, PedidoFamiliar } from './types';
 
 // Deterministic portrait assignment based on ID or index
 const AVATARS = [
@@ -6,7 +6,7 @@ const AVATARS = [
   'https://lh3.googleusercontent.com/aida-public/AB6AXuAupF1U5BwusRNVA7pYrPg3F9LWvEclXdJ8f3cqJp7Pm9hYHvxky5Rhbj7zHrQVmln3f9PqPgR5DsqXV1eolYrxMM-Govw79aw19tdAlAGEcqbusbmLzW6GhiatqCUprk1gpE-s33PuSNkyhxGwvs7fLxk-KveNWqTUQFcTCxNC7iLihEJnCvSmdbuCZ9omcZ84R7iRY6xX1-I0ccXggL3_2l-PpvEsIuzpLYGNyzufp97ov689_70lgih59c0kBCCIA4O4h4h-FAU',
   'https://lh3.googleusercontent.com/aida-public/AB6AXuCk-Hbzjk_MS-wP4O81HU0ApV7pXHeYRuMkrPtTXtLoUY-vNcgGhAQnK_UOYB75w7GP2JIw8wJm8qCsf0nr6UB0hek1-85BXnOY9gd3Uy9mBz30AvDdlM0b5gcZjV6TFCMjnaZdOVlaAvG2TLioaIC4dEomOBgBLh6iutPBn9dSPjEZhUgvKtvDIH3b8Nz3mVSgL_XhBHjVxWuImSvJH7FNzETZYedZ-0ObExyfUHJgXe8Bp0JoV8SCttKxM0P0uvQG7RC4alhHVgc',
   'https://lh3.googleusercontent.com/aida-public/AB6AXuBkiJimyjesDAtT0s4klRx6LZ0mmvW3_om82tgS_UvCiC7Lt2GTyCHtSqJpkBgqEoX8NaCdRfxLO50JrAPHcRhfd6_Y2nmXC915TJLzC7FI5LfhPF4Vec4dzCvaHSvWgRTFWlNTWkt5cgwWOq5m3Q0Tn1UELC6MSJfjkvQL6Rtacnwb2-v-F_Ww1RSu5TojIboMe3DK8xh0j4laq6IVtANbf5wy1miwz400nOtnBkkvYcKA8W_y3zOftrA1JKTmpWKfpaEtk06mJVI',
-  'https://lh3.googleusercontent.com/aida-public/AB6AXuBMGWOu8KtamMvSHjA8HeTFsnrlRcHRtDdNVkW1c_B7In8DoW5mzwbNC1kW6nCTAgttUa0RpdrzdcteG3bkIQJi43t1dyQUl3OLFSne5j32ckkq1-0NKTvLz2JTut6m8ODXNEmjfsQhha-HJnxo3-aiiwQRwPRC9-JmG3idvsS_es1oaRBJA5bIgywuvLDFwIXqPnMieHQkeEOgIJYS9_ohKJ9CnEx53lYjwg92F5bgSufrPTLJFXi4OJb58YRU4LsNtnqWRdWTxqY',
+  'https://lh3.googleusercontent.com/aida-public/AB6AXuBMGWOu8KtamMvSHjA8HeTFsnrlRcHRtDdNVkW1c_B7In8DoW5mzwbNC1kW6nCTAgttUa0RpdrzdcteG3bkIQJi43t1dyQUl3OLFSne5j32ckkq1-0NKTvLz2JTut6m8ODXNEmjfsQhha-HJnxo3-aiiwQRwPRC9-JmG3idvsS_es1oaRBJA5bIgywuvLDFwIXqPnMieHQkeEOgIJYS_ohKJ9CnEx53lYjwg92F5bgSufrPTLJFXi4OJb58YRU4LsNtnqWRdWTxqY',
   'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200&h=200',
   'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200&h=200',
   'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&q=80&w=200&h=200'
@@ -85,7 +85,7 @@ const RAW_RESIDENTS: RawRes[] = [
   { id: "UT-054", name: "Miguel Sousa", room: "143", age: 72, mob: "Independente", state: "Estável", fam: "Pedro Costa", tel: "935016429", weight: 65.9, blood: "AB+", allergies: ["Penicilina"], score: 70 },
   { id: "UT-055", name: "Miguel Oliveira", room: "148", age: 70, mob: "Acamado", state: "Crítico", fam: "Teresa Sousa", tel: "961500679", weight: 54.1, blood: "O+", allergies: ["Penicilina"], score: 85 },
   { id: "UT-056", name: "Bruno Sousa", room: "174", age: 87, mob: "Com apoio", state: "Recuperação", fam: "Teresa Oliveira", tel: "915584869", weight: 49.5, blood: "B+", allergies: ["Pólen"], score: 76 },
-  { id: "UT-057", name: "João Oliveira", room: "117", age: 94, mob: "Independente", state: "Recuperação", fam: "Paula Sousa", tel: "962707402", weight: 82.7, blood: "O-", allergies: ["Lactose", "Ácaros"], score: 81 },
+  { id: "UT-057", name: "João Oliveira", room: "117", age: 94, mob: "Independente", state: "Recuperação", fam: "Paula Sousa", tel: "962707402", weight: 82.7, blood: "O-\", allergies: [\"Lactose\", \"Ácaros\"], score: 81 },
   { id: "UT-058", name: "Catarina Silva", room: "157", age: 70, mob: "Com apoio", state: "Crítico", fam: "Beatriz Santos", tel: "997241147", weight: 87.3, blood: "O+", allergies: ["Lactose"], score: 60 },
   { id: "UT-059", name: "Fernanda Rodrigues", room: "109", age: 70, mob: "Acamado", state: "Crítico", fam: "Beatriz Sousa", tel: "994299475", weight: 96.2, blood: "O+", allergies: ["Penicilina"], score: 90 },
   { id: "UT-060", name: "Helena Almeida", room: "170", age: 83, mob: "Independente", state: "Estável", fam: "Pedro Santos", tel: "919064068", weight: 87.2, blood: "AB-", allergies: ["Glúten", "Marisco"], score: 87 },
@@ -383,7 +383,7 @@ export const INITIAL_RESIDENTS: Resident[] = RAW_RESIDENTS.map((raw, idx) => {
   });
 
   // 4. Add system alert if priority final is high (has priority limits exceeded)
-  const hasAlert = raw.score >= 95 || raw.id === "UT-004" || raw.id === "UT-012" || raw.id === "UT-035" || raw.id === "UT-046";
+  const hasAlert = raw.score >= 95 || raw.id === "UT-012" || raw.id === "UT-035" || raw.id === "UT-046";
   if (hasAlert) {
     initialActivities.push({
       id: `act-${raw.id}-alert`,
@@ -462,6 +462,146 @@ export const INITIAL_RESIDENTS: Resident[] = RAW_RESIDENTS.map((raw, idx) => {
   };
 });
 
+const MED_ID_MAP: Record<string, string> = {
+  "UT-001_Metformina": "MED-001",
+  "UT-001_Losartan": "MED-002",
+  "UT-002_Diazepam": "MED-003",
+  "UT-002_Montelucaste": "MED-004",
+  "UT-003_Memantina": "MED-005",
+  "UT-004_Enalapril": "MED-006",
+  "UT-004_Omeprazol": "MED-007",
+  "UT-005_Omeprazol": "MED-007",
+  "UT-005_Enalapril": "MED-006",
+  "UT-006_Metformina": "MED-001",
+  "UT-007_Montelucaste": "MED-004",
+  "UT-008_Metformina": "MED-001",
+  "UT-009_Inalapril": "MED-013",
+  "UT-009_Carvedilol": "MED-014",
+  "UT-010_Sertralina": "MED-015",
+  "UT-010_Mirtazapina": "MED-016",
+  "UT-011_Levodopa": "MED-017",
+  "UT-011_Entacapone": "MED-018",
+  "UT-012_Memantina": "MED-005",
+  "UT-013_Paracetamol": "MED-020",
+  "UT-014_Sertralina": "MED-015",
+  "UT-014_Mirtazapina": "MED-016",
+  "UT-015_Paracetamol": "MED-020",
+  "UT-016_Paracetamol": "MED-020",
+  "UT-017_Ramipril": "MED-025",
+  "UT-017_Carvedilol": "MED-014",
+  "UT-018_Sertralina": "MED-015",
+  "UT-018_Mirtazapina": "MED-016",
+  "UT-019_Sertralina": "MED-015",
+  "UT-019_Mirtazapina": "MED-016",
+  "UT-020_Ramipril": "MED-025",
+  "UT-021_Montelucaste": "MED-004",
+  "UT-022_Montelucaste": "MED-004",
+  "UT-023_Sertralina": "MED-015",
+  "UT-023_Mirtazapina": "MED-016",
+  "UT-024_Losartan": "MED-002",
+  "UT-025_Ramipril": "MED-025",
+  "UT-026_Montelucaste": "MED-004",
+  "UT-027_Metformina": "MED-001",
+  "UT-028_Montelucaste": "MED-004",
+  "UT-029_Ramipril": "MED-025",
+  "UT-030_Ramipril": "MED-025",
+  "UT-030_Carvedilol": "MED-014",
+  "UT-031_Ramipril": "MED-025",
+  "UT-031_Carvedilol": "MED-014",
+  "UT-032_Metformina": "MED-001",
+  "UT-033_Montelucaste": "MED-004",
+  "UT-034_Prednisolona": "MED-048",
+  "UT-035_Memantina": "MED-005",
+  "UT-035_Donepezilo": "MED-050",
+  "UT-036_Memantina": "MED-005",
+  "UT-036_Donepezilo": "MED-050",
+  "UT-037_Metformina": "MED-001",
+  "UT-038_Sacubitril": "MED-054",
+  "UT-039_Sacubitril": "MED-054",
+  "UT-040_Losartan": "MED-002",
+  "UT-040_Amlodipina": "MED-057",
+  "UT-041_Atorvastatina": "MED-058",
+  "UT-041_Lorazepam": "MED-059",
+  "UT-042_Diazepam": "MED-003",
+  "UT-042_Warfarina": "MED-061",
+  "UT-043_Metformina": "MED-001",
+  "UT-043_Diazepam": "MED-003",
+  "UT-044_Omeprazol": "MED-007",
+  "UT-044_Warfarina": "MED-061",
+  "UT-045_Metformina": "MED-001",
+  "UT-045_Rivaroxabano": "MED-067",
+  "UT-046_Memantina": "MED-005",
+  "UT-046_Warfarina": "MED-061",
+  "UT-047_Omeprazol": "MED-007",
+  "UT-047_Budesonida": "MED-071",
+  "UT-048_Memantina": "MED-005",
+  "UT-048_Quetiapina": "MED-073",
+  "UT-049_Enalapril": "MED-006",
+  "UT-049_Atorvastatina": "MED-058",
+  "UT-050_Enalapril": "MED-006",
+  "UT-050_Ramipril": "MED-025",
+  "UT-051_Omeprazol": "MED-007",
+  "UT-051_Sinvastatina": "MED-079",
+  "UT-052_Omeprazol": "MED-007",
+  "UT-052_Sinemet": "MED-081",
+  "UT-053_Sinvastatina": "MED-079",
+  "UT-053_Amlodipina": "MED-057",
+  "UT-054_Atorvastatina": "MED-058",
+  "UT-054_Sinvastatina": "MED-079",
+  "UT-055_Enalapril": "MED-006",
+  "UT-055_Ramipril": "MED-025",
+  "UT-056_Lorazepam": "MED-059",
+  "UT-056_Alprazolam": "MED-089",
+  "UT-057_Atorvastatina": "MED-058",
+  "UT-057_Diazepam": "MED-003",
+  "UT-058_Quetiapina": "MED-073",
+  "UT-058_Tramadol": "MED-093",
+  "UT-059_Memantina": "MED-005",
+  "UT-059_Donepezilo": "MED-050",
+  "UT-060_Metformina": "MED-001",
+  "UT-060_Apixabano": "MED-097",
+  "UT-061_Lorazepam": "MED-059",
+  "UT-061_Memantina": "MED-005",
+  "UT-062_Metformina": "MED-001",
+  "UT-062_Omeprazol": "MED-007",
+  "UT-063_Metformina": "MED-001",
+  "UT-063_Enalapril": "MED-006",
+  "UT-064_Losartan": "MED-002",
+  "UT-064_Metformina": "MED-001",
+  "UT-065_Lorazepam": "MED-059",
+  "UT-065_Warfarina": "MED-061",
+  "UT-066_Omeprazol": "MED-007",
+  "UT-066_Memantina": "MED-005",
+  "UT-067_Metformina": "MED-001",
+  "UT-067_Sinvastatina": "MED-079",
+  "UT-068_Atorvastatina": "MED-058",
+  "UT-068_Diazepam": "MED-003",
+  "UT-069_Metformina": "MED-001",
+  "UT-069_Enalapril": "MED-006",
+  "UT-070_Omeprazol": "MED-007",
+  "UT-070_Atorvastatina": "MED-058",
+  "UT-071_Atorvastatina": "MED-058",
+  "UT-071_Diazepam": "MED-003",
+  "UT-072_Atorvastatina": "MED-058",
+  "UT-072_Sinemet": "MED-081",
+  "UT-073_Metformina": "MED-001",
+  "UT-073_Enalapril": "MED-006",
+  "UT-074_Enalapril": "MED-006",
+  "UT-074_Apixabano": "MED-097",
+  "UT-075_Omeprazol": "MED-007",
+  "UT-075_Memantina": "MED-005",
+  "UT-076_Losartan": "MED-002",
+  "UT-076_Diazepam": "MED-003",
+  "UT-077_Atorvastatina": "MED-058",
+  "UT-077_Diclofenac": "MED-131",
+  "UT-078_Lorazepam": "MED-059",
+  "UT-078_Diclofenac": "MED-131",
+  "UT-079_Losartan": "MED-002",
+  "UT-079_Diazepam": "MED-003",
+  "UT-080_Losartan": "MED-002",
+  "UT-080_Ramipril": "MED-025"
+};
+
 export const INITIAL_MEDICATIONS: MedicationRecord[] = [];
 
 RAW_RESIDENTS.forEach((res) => {
@@ -472,6 +612,9 @@ RAW_RESIDENTS.forEach((res) => {
     const isBidiario = m.schedule.toLowerCase().includes('bidiário') || m.schedule.toLowerCase().includes('e');
     const freq = isBidiario ? '2x ao dia' : '1x ao dia';
     
+    const key = `${res.id}_${m.name}`;
+    const medId = MED_ID_MAP[key] || `MED-NEW-${Date.now()}-${idx}`;
+    
     INITIAL_MEDICATIONS.push({
       id: `med-rec-${res.id}-${idx}`,
       ID_Utente: res.id,
@@ -481,7 +624,47 @@ RAW_RESIDENTS.forEach((res) => {
       Frequência_dia: freq,
       Médico_Prescitor: 'Dr. Manuel Silva',
       Data_Início: '01/05/2026',
-      Data_Fim: '01/10/2026'
+      Data_Fim: '01/10/2026',
+      ID_Medicamento: medId
     });
   });
 });
+
+export const INITIAL_PEDIDOS: PedidoFamiliar[] = [
+  {
+    id: "ped-001",
+    ID_Pedido: "PED-001",
+    ID_Utente: "UT-001",
+    Nome_Utente: "Carlos Silva",
+    Familiar_Responsável: "Daniel Ferreira",
+    Assunto: "Solicitação de Contacto Telefónico",
+    Mensagem: "Gostaria de saber se o meu irmão Carlos está disponível para uma breve chamada telefónica hoje ao final do dia. Obrigado.",
+    Data_Hora: "2026/06/02 18:30:00",
+    Estado: "Pendente",
+    Lar: "Monte do Sol"
+  },
+  {
+    id: "ped-002",
+    ID_Pedido: "PED-002",
+    ID_Utente: "UT-002",
+    Nome_Utente: "Maria Santos",
+    Familiar_Responsável: "Teresa Santos",
+    Assunto: "Agendamento / Aviso de Visita",
+    Mensagem: "Estou a planear visitar a minha mãe amanhã (dia 3 de junho) por volta das 15:30. Estará no quarto a essa hora?",
+    Data_Hora: "2026/06/02 20:15:00",
+    Estado: "Pendente",
+    Lar: "Pinhal de Coimbra"
+  },
+  {
+    id: "ped-003",
+    ID_Pedido: "PED-003",
+    ID_Utente: "UT-003",
+    Nome_Utente: "António Oliveira",
+    Familiar_Responsável: "Carla Oliveira",
+    Assunto: "Questão sobre Estado Clínico ou Medicação",
+    Mensagem: "Reparei que ele andava um pouco queixoso das pernas no domingo. Poderiam verificar se a medicação para a circulação está a fazer o efeito esperado?",
+    Data_Hora: "2026/06/02 21:00:00",
+    Estado: "Pendente",
+    Lar: "Bela Vista"
+  }
+];

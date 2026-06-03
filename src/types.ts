@@ -78,4 +78,18 @@ export interface MedicationRecord {
   Médico_Prescitor: string;
   Data_Início: string;
   Data_Fim: string;
+  ID_Medicamento: string;
+}
+
+export interface PedidoFamiliar {
+  id: string;
+  ID_Pedido: string;
+  ID_Utente: string;
+  Nome_Utente: string;
+  Familiar_Responsável: string;
+  Assunto: string;
+  Mensagem: string;
+  Data_Hora: string;
+  Estado: 'Pendente' | 'Resolvido';
+  Lar: string;
 }
