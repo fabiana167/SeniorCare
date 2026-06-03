@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
-    "lint": "tsc --noEmit",
+    "lint": "typescript --noEmit",
     "seed-lares": "tsx seed-lares.ts",
     "seed-patologias": "tsx seed-patologias.ts",
     "seed-utentes": "tsx seed-utentes.ts",
@@ -24,7 +24,7 @@
     "seed-funcionarios": "tsx seed-funcionarios.ts",
     "seed-erros": "tsx seed-erros.ts",
     "seed-acessos": "tsx seed-acessos.ts",
-    "seed-all": "tsx seed-db.ts && tsx seed-lares.ts && tsx seed-patologias.ts && tsx seed-utentes.ts && tsx seed-medicacao.ts && tsx seed-sinais-vitais.ts && tsx seed-ocorrencias.ts && tsx seed-questionarios.ts && tsx seed-consultas.ts && tsx seed-exames.ts && tsx seed-familiares.ts && tsx seed-alertas.ts && tsx seed-triagem.ts && tsx seed-funcionarios.ts && tsx seed-erros.ts && tsx seed-acessos.ts"
+    "seed-all": "tsx seed-db.ts && tsx seed-lares.ts && tsx seed-patologias.ts && tsx seed-utentes.ts && tsx seed-medicacao.ts && tsx seed-sinais-vitais.ts && tsx seed-ocorrencias.ts && tsx seed-questionarios.ts && tsx seed-consultas.ts && tsx seed-exames.ts && tsx seed-familiares.ts && tsx seed-alertas.ts && tsx seed-triagem.ts && tsx seed-funcionarios.ts && tsx seed-erros.ts && tsx seed-acessos."
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
