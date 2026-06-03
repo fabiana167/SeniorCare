@@ -75,6 +75,33 @@ service cloud.firestore {
       && data.description is string && data.description.size() <= 5000;
     }
 
+    // Schema Validation for a LarMapping (association)
+    function isValidLarMapping(data) {
+      return data.keys().hasAll(['id', 'ID_Utente', 'Lar'])
+        && data.keys().size() == 3
+        && data.id is string && data.id.size() <= 128
+        && data.ID_Utente is string && data.ID_Utente.size() <= 128
+        && data.Lar is string && data.Lar.size() <= 200;
+    }
+
+    // Schema Validation for a Patologia (clinical history)
+    function isValidPatologia(data) {
+      return data.keys().hasAll([
+        'id', 'ID_Patologia', 'ID_Utente', 'Patologia', 'Gravidade',
+        'Crónica', 'Data_Diagnóstico', 'Gravidade_Pontos', 'Patologia_Pontos'
+      ])
+      && data.keys().size() == 9
+      && data.id is string && data.id.size() <= 128
+      && data.ID_Patologia is string && data.ID_Patologia.size() <= 128
+      && data.ID_Utente is string && data.ID_Utente.size() <= 128
+      && data.Patologia is string && data.Patologia.size() <= 200
+      && data.Gravidade is string && (data.Gravidade == 'Leve' || data.Gravidade == 'Moderada' || data.Gravidade == 'Grave')
+      && data['Crónica'] is bool
+      && data['Data_Diagnóstico'] is string && data['Data_Diagnóstico'].size() <= 50
+      && data.Gravidade_Pontos is int && data.Gravidade_Pontos >= 0
+      && data.Patologia_Pontos is int && data.Patologia_Pontos >= 0;
+    }
+
     // Rules for Care Homes (Lares)
     match /lares/{larId} {
       allow get: if isSignedIn() && isValidId(larId);
@@ -100,6 +127,24 @@ service cloud.firestore {
         allow update: if isSignedIn() && isValidId(larId) && isValidId(occurrenceId) && isValidOccurrence(incoming());
         allow delete: if isSignedIn() && isValidId(larId) && isValidId(occurrenceId);
       }
+    }
+
+    // Rules for Lares mapping table
+    match /Lares/{mappingId} {
+      allow get: if isSignedIn() && isValidId(mappingId);
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(mappingId) && isValidLarMapping(incoming());
+      allow update: if isSignedIn() && isValidId(mappingId) && isValidLarMapping(incoming());
+      allow delete: if isSignedIn() && isValidId(mappingId);
+    }
+
+    // Rules for Patologias table
+    match /Patologias/{patologiaId} {
+      allow get: if isSignedIn() && isValidId(patologiaId);
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(patologiaId) && isValidPatologia(incoming());
+      allow update: if isSignedIn() && isValidId(patologiaId) && isValidPatologia(incoming());
+      allow delete: if isSignedIn() && isValidId(patologiaId);
     }
   }
 }

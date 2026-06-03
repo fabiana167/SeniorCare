@@ -106,7 +106,8 @@
         "Frequência_dia": { "type": "string", "description": "Quantas vezes ao dia (ex: 2x ao dia)" },
         "Médico_Prescitor": { "type": "string", "description": "Nome do médico prescritor da medicação" },
         "Data_Início": { "type": "string", "description": "Data de início do tratamento" },
-        "Data_Fim": { "type": "string", "description": "Data prevista de fim do tratamento" }
+        "Data_Fim": { "type": "string", "description": "Data prevista de fim do tratamento" },
+        "ID_Medicamento": { "type": "string", "description": "ID exato do medicamento" }
       },
       "required": [
         "id",
@@ -117,8 +118,37 @@
         "Frequência_dia",
         "Médico_Prescitor",
         "Data_Início",
-        "Data_Fim"
+        "Data_Fim",
+        "ID_Medicamento"
       ]
+    },
+    "Lares": {
+      "title": "Lares",
+      "description": "Tabela de mapeamento entre Utentes e Lares",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Identificador único do mapeamento" },
+        "ID_Utente": { "type": "string", "description": "ID exato do utente" },
+        "Lar": { "type": "string", "description": "ID ou nome exato do Lar" }
+      },
+      "required": ["id", "ID_Utente", "Lar"]
+    },
+    "Patologias": {
+      "title": "Patologias",
+      "description": "Historial clínico detalhado de patologias e comorbilidades dos utentes",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Identificador único do documento" },
+        "ID_Patologia": { "type": "string", "description": "Código único da patologia" },
+        "ID_Utente": { "type": "string", "description": "Código exato do utente" },
+        "Patologia": { "type": "string", "description": "Nome da patologia" },
+        "Gravidade": { "type": "string", "enum": ["Leve", "Moderada", "Grave"], "description": "Nível de gravidade clínica" },
+        "Crónica": { "type": "boolean", "description": "Indica se a condição é crónica" },
+        "Data_Diagnóstico": { "type": "string", "description": "Data do diagnóstico (DD/MM/AAAA)" },
+        "Gravidade_Pontos": { "type": "integer", "description": "Pontos clínicos associados à gravidade" },
+        "Patologia_Pontos": { "type": "integer", "description": "Pontos clínicos específicos da patologia" }
+      },
+      "required": ["id", "ID_Patologia", "ID_Utente", "Patologia", "Gravidade", "Crónica", "Data_Diagnóstico", "Gravidade_Pontos", "Patologia_Pontos"]
     }
   },
   "firestore": {
@@ -137,6 +167,14 @@
     "lares/{larId}/medication_records/{medicationRecordId}": {
       "schema": "MedicationRecord",
       "description": "Tabela de medicação com as respetivas prescrições dos utentes"
+    },
+    "Lares/{mappingId}": {
+      "schema": "Lares",
+      "description": "Associação e triagem de utentes com as residências sénior correspondentes"
+    },
+    "Patologias/{patologiaId}": {
+      "schema": "Patologias",
+      "description": "Tabela detalhada de patologias com pontuação e níveis de gravidade de triagem"
     }
   }
 }

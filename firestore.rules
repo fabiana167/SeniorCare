@@ -89,9 +89,9 @@ service cloud.firestore {
     function isValidMedicationRecord(data) {
       return data.keys().hasAll([
         'id', 'ID_Utente', 'Medicamento', 'Dosagem', 'Horário',
-        'Frequência_dia', 'Médico_Prescitor', 'Data_Início', 'Data_Fim'
+        'Frequência_dia', 'Médico_Prescitor', 'Data_Início', 'Data_Fim', 'ID_Medicamento'
       ])
-      && data.keys().size() == 9
+      && data.keys().size() == 10
       && data.id is string && data.id.size() <= 128
       && data.ID_Utente is string && data.ID_Utente.size() <= 128
       && data.Medicamento is string && data.Medicamento.size() <= 200
@@ -100,8 +100,291 @@ service cloud.firestore {
       && data['Frequência_dia'] is string && data['Frequência_dia'].size() <= 100
       && data['Médico_Prescitor'] is string && data['Médico_Prescitor'].size() <= 200
       && data['Data_Início'] is string && data['Data_Início'].size() <= 50
+      && data['Data_Fim'] is string && data['Data_Fim'].size() <= 50
+      && data.ID_Medicamento is string && data.ID_Medicamento.size() <= 128;
+    }
+
+    // Schema Validation for a LarMapping (association)
+    function isValidLarMapping(data) {
+      return data.keys().hasAll(['id', 'ID_Utente', 'Lar'])
+        && data.keys().size() == 3
+        && data.id is string && data.id.size() <= 128
+        && data.ID_Utente is string && data.ID_Utente.size() <= 128
+        && data.Lar is string && data.Lar.size() <= 200;
+    }
+
+    // Schema Validation for a Patologia (clinical history)
+    function isValidPatologia(data) {
+      return data.keys().hasAll([
+        'id', 'ID_Patologia', 'ID_Utente', 'Patologia', 'Gravidade',
+        'Crónica', 'Data_Diagnóstico', 'Gravidade_Pontos', 'Patologia_Pontos'
+      ])
+      && data.keys().size() == 9
+      && data.id is string && data.id.size() <= 128
+      && data.ID_Patologia is string && data.ID_Patologia.size() <= 128
+      && data.ID_Utente is string && data.ID_Utente.size() <= 128
+      && data.Patologia is string && data.Patologia.size() <= 200
+      && data.Gravidade is string && (data.Gravidade == 'Leve' || data.Gravidade == 'Moderada' || data.Gravidade == 'Grave')
+      && data['Crónica'] is bool
+      && data['Data_Diagnóstico'] is string && data['Data_Diagnóstico'].size() <= 50
+      && data.Gravidade_Pontos is int && data.Gravidade_Pontos >= 0
+      && data.Patologia_Pontos is int && data.Patologia_Pontos >= 0;
+    }
+
+    // Schema Validation for a Utente
+    function isValidUtente(data) {
+      return data.keys().hasAll([
+        'id', 'ID_Utente', 'Nome', 'Data_Nascimento', 'Idade', 'Sexo',
+        'Quarto', 'Mobilidade', 'Estado_Geral', 'Familiar_Responsável',
+        'Contacto_Familiar', 'Peso', 'Tipo_sanguineo', 'Alergias',
+        'Idade_Pontos', 'Mobilidade_Pontos'
+      ])
+      && data.keys().size() == 16
+      && data.id is string && data.id.size() <= 128
+      && data.ID_Utente is string && data.ID_Utente.size() <= 128
+      && data.Nome is string && data.Nome.size() <= 200
+      && data.Data_Nascimento is string && data.Data_Nascimento.size() <= 50
+      && data.Idade is int && data.Idade >= 0 && data.Idade <= 150
+      && data.Sexo is string && (data.Sexo == 'M' || data.Sexo == 'F')
+      && data.Quarto is string && data.Quarto.size() <= 10
+      && data.Mobilidade is string && data.Mobilidade.size() <= 100
+      && data.Estado_Geral is string && data.Estado_Geral.size() <= 100
+      && data['Familiar_Responsável'] is string && data['Familiar_Responsável'].size() <= 200
+      && data.Contacto_Familiar is string && data.Contacto_Familiar.size() <= 50
+      && (data.Peso is number || data.Peso is int) && data.Peso >= 0.0
+      && data.Tipo_sanguineo is string && data.Tipo_sanguineo.size() <= 10
+      && data.Alergias is list
+      && data.Idade_Pontos is int && data.Idade_Pontos >= 0
+      && data.Mobilidade_Pontos is int && data.Mobilidade_Pontos >= 0;
+    }
+
+    // Schema Validation for a Medicação
+    function isValidMedicao(data) {
+      return data.keys().hasAll([
+        'id', 'ID_Utente', 'Medicamento', 'ID_Medicamento', 'Dosagem',
+        'Horário', 'Frequência_dia', 'Médico_Prescitor', 'Data_Início', 'Data_Fim'
+      ])
+      && data.keys().size() == 10
+      && data.id is string && data.id.size() <= 128
+      && data.ID_Utente is string && data.ID_Utente.size() <= 128
+      && data.Medicamento is string && data.Medicamento.size() <= 200
+      && data.ID_Medicamento is string && data.ID_Medicamento.size() <= 128
+      && data.Dosagem is string && data.Dosagem.size() <= 100
+      && data['Horário'] is string && data['Horário'].size() <= 100
+      && data['Frequência_dia'] is string && data['Frequência_dia'].size() <= 100
+      && data['Médico_Prescitor'] is string && data['Médico_Prescitor'].size() <= 200
+      && data['Data_Início'] is string && data['Data_Início'].size() <= 50
       && data['Data_Fim'] is string && data['Data_Fim'].size() <= 50;
     }
+
+    // Schema Validation for Sinais vitais
+    function isValidSinaisVitais(data) {
+      return data.keys().hasAll([
+        'id', 'ID_Utente', 'Data_Hora', 'Temperatura', 'Temperatura_Pontos',
+        'Tensão_Arterial', 'Tensão_Arterial_Pontos', 'Saturação', 'Saturação_Pontos',
+        'Glicemia', 'Glicemia_Pontos', 'Frequência_Cardíaca', 'Frequência_Cardíaca_Pontos',
+        'SinaisVitais_Pontos'
+      ])
+      && data.keys().size() == 14
+      && data.id is string && data.id.size() <= 128
+      && data.ID_Utente is string && data.ID_Utente.size() <= 128
+      && data['Data_Hora'] is string && data['Data_Hora'].size() <= 50
+      && (data.Temperatura is number || data.Temperatura is int)
+      && data['Temperatura_Pontos'] is int && data['Temperatura_Pontos'] >= 0
+      && data['Tensão_Arterial'] is string && data['Tensão_Arterial'].size() <= 20
+      && data['Tensão_Arterial_Pontos'] is int && data['Tensão_Arterial_Pontos'] >= 0
+      && data['Saturação'] is int && data['Saturação'] >= 0 && data['Saturação'] <= 100
+      && data['Saturação_Pontos'] is int && data['Saturação_Pontos'] >= 0
+      && (data.Glicemia is number || data.Glicemia is int)
+      && data['Glicemia_Pontos'] is int && data['Glicemia_Pontos'] >= 0
+      && data['Frequência_Cardíaca'] is int && data['Frequência_Cardíaca'] >= 0
+      && data['Frequência_Cardíaca_Pontos'] is int && data['Frequência_Cardíaca_Pontos'] >= 0
+      && data['SinaisVitais_Pontos'] is int && data['SinaisVitais_Pontos'] >= 0;
+    }
+
+
+    // Schema Validation for Ocorrências
+    function isValidOcorrencia(data) {
+      return data.keys().hasAll([
+        'id', 'ID_Ocorrencia', 'ID_Utente', 'Tipo_Ocorrencia', 'Data_Hora',
+        'Data_Hora_Registo', 'Gravidade', 'Descrição', 'Familiar_Responsável',
+        'Encaminhamento_Hospital', 'Internamento', 'Internamento_Pontos'
+      ])
+      && data.keys().size() == 12
+      && data.id is string && data.id.size() <= 128
+      && data.ID_Ocorrencia is string && data.ID_Ocorrencia.size() <= 128
+      && data.ID_Utente is string && data.ID_Utente.size() <= 128
+      && data['Tipo_Ocorrencia'] is string && data['Tipo_Ocorrencia'].size() <= 200
+      && data['Data_Hora'] is string && data['Data_Hora'].size() <= 50
+      && data['Data_Hora_Registo'] is string && data['Data_Hora_Registo'].size() <= 50
+      && data.Gravidade is string && data.Gravidade.size() <= 50
+      && data['Descrição'] is string && data['Descrição'].size() <= 10000
+      && data['Familiar_Responsável'] is string && data['Familiar_Responsável'].size() <= 200
+      && (data['Encaminhamento_Hospital'] is bool || data['Encaminhamento_Hospital'] is string)
+      && (data.Internamento is bool || data.Internamento is string)
+      && data.Internamento_Pontos is int && data.Internamento_Pontos >= 0;
+    }
+
+
+    // Schema Validation for Questionários
+    function isValidQuestionario(data) {
+      return data.keys().hasAll(['id', 'ID_Resposta', 'ID_Familiar', 'Pontuação_Satisfação'])
+      && data.keys().size() == 4
+      && data.id is string && data.id.size() <= 128
+      && data.ID_Resposta is string && data.ID_Resposta.size() <= 128
+      && data.ID_Familiar is string && data.ID_Familiar.size() <= 128
+      && data['Pontuação_Satisfação'] is int && data['Pontuação_Satisfação'] >= 0;
+    }
+
+
+    // Schema Validation for Consultas
+    function isValidConsulta(data) {
+      return data.keys().hasAll([
+        'id', 'ID_Consulta', 'ID_Utente', 'Médico', 'Especialidade',
+        'Diagnóstico', 'Data_Consulta', 'Próxima_Consulta'
+      ])
+      && data.keys().size() == 8
+      && data.id is string && data.id.size() <= 128
+      && data.ID_Consulta is string && data.ID_Consulta.size() <= 128
+      && data.ID_Utente is string && data.ID_Utente.size() <= 128
+      && data['Médico'] is string && data['Médico'].size() <= 200
+      && data.Especialidade is string && data.Especialidade.size() <= 200
+      && data['Diagnóstico'] is string && data['Diagnóstico'].size() <= 5000
+      && data['Data_Consulta'] is string && data['Data_Consulta'].size() <= 50
+      && data['Próxima_Consulta'] is string && data['Próxima_Consulta'].size() <= 50;
+    }
+
+
+    // Schema Validation for Exames
+    function isValidExame(data) {
+      return data.keys().hasAll([
+        'id', 'ID_Exame', 'ID_Utente', 'Tipo_Exame', 'Resultado',
+        'Data_Exame', 'PDF_Exame'
+      ])
+      && data.keys().size() == 7
+      && data.id is string && data.id.size() <= 128
+      && data.ID_Exame is string && data.ID_Exame.size() <= 128
+      && data.ID_Utente is string && data.ID_Utente.size() <= 128
+      && data['Tipo_Exame'] is string && data['Tipo_Exame'].size() <= 200
+      && data.Resultado is string && data.Resultado.size() <= 2000
+      && data['Data_Exame'] is string && data['Data_Exame'].size() <= 50
+      && data['PDF_Exame'] is string && data['PDF_Exame'].size() <= 1024;
+    }
+
+
+    // Schema Validation for Familiares
+    function isValidFamiliar(data) {
+      return data.keys().hasAll([
+        'id', 'ID_Familiar', 'ID_Utente', 'Nome', 'Parentesco',
+        'Telefone', 'Email'
+      ])
+      && data.keys().size() == 7
+      && data.id is string && data.id.size() <= 128
+      && data.ID_Familiar is string && data.ID_Familiar.size() <= 128
+      && data.ID_Utente is string && data.ID_Utente.size() <= 128
+      && data.Nome is string && data.Nome.size() <= 200
+      && data.Parentesco is string && data.Parentesco.size() <= 100
+      && data.Telefone is string && data.Telefone.size() <= 50
+      && data.Email is string && data.Email.size() <= 256;
+    }
+
+
+    // Schema Validation for Alertas
+    function isValidAlerta(data) {
+      return data.keys().hasAll([
+        'id', 'ID_Alerta', 'ID_Utente', 'Tipo_Alerta', 'Prioridade',
+        'Data_Hora', 'Data_Intervenção', 'Estado'
+      ])
+      && data.keys().size() == 8
+      && data.id is string && data.id.size() <= 128
+      && data.ID_Alerta is string && data.ID_Alerta.size() <= 128
+      && data.ID_Utente is string && data.ID_Utente.size() <= 128
+      && data.Tipo_Alerta is string && data.Tipo_Alerta.size() <= 200
+      && data.Prioridade is string && data.Prioridade.size() <= 50
+      && data.Data_Hora is string && data.Data_Hora.size() <= 50
+      && data['Data_Intervenção'] is string && data['Data_Intervenção'].size() <= 50
+      && data.Estado is string && data.Estado.size() <= 50;
+    }
+
+
+    // Schema Validation for Triagem
+    function isValidTriagem(data) {
+      return data.keys().hasAll([
+        'id', 'ID_Triagem', 'ID_Utente', 'Idade_Pontos', 'Gravidade_Pontos',
+        'Patologia_Pontos', 'Mobilidade_Pontos', 'Internamentos_Pontos',
+        'SinaisVitais_Pontos', 'Score_Total', 'Prioridade_Final', 'Última_Atualização'
+      ])
+      && data.keys().size() == 12
+      && data.id is string && data.id.size() <= 128
+      && data.ID_Triagem is string && data.ID_Triagem.size() <= 128
+      && data.ID_Utente is string && data.ID_Utente.size() <= 128
+      && data.Idade_Pontos is int && data.Idade_Pontos >= 0
+      && data.Gravidade_Pontos is int && data.Gravidade_Pontos >= 0
+      && data.Patologia_Pontos is int && data.Patologia_Pontos >= 0
+      && data.Mobilidade_Pontos is int && data.Mobilidade_Pontos >= 0
+      && data.Internamentos_Pontos is int && data.Internamentos_Pontos >= 0
+      && data.SinaisVitais_Pontos is int && data.SinaisVitais_Pontos >= 0
+      && data.Score_Total is int && data.Score_Total >= 0
+      && data.Prioridade_Final is string && data.Prioridade_Final.size() <= 50
+      && data['Última_Atualização'] is string && data['Última_Atualização'].size() <= 50;
+    }
+
+
+    // Schema Validation for Funcionários
+    function isValidFuncionario(data) {
+      return data.keys().hasAll([
+        'id', 'ID_Funcionário', 'Nome', 'Cargo', 'Departamento',
+        'Data de Entrada', 'Data de Saída'
+      ])
+      && data.keys().size() == 7
+      && data.id is string && data.id.size() <= 128
+      && data['ID_Funcionário'] is string && data['ID_Funcionário'].size() <= 128
+      && data.Nome is string && data.Nome.size() <= 200
+      && data.Cargo is string && data.Cargo.size() <= 200
+      && data.Departamento is string && data.Departamento.size() <= 200
+      && data['Data de Entrada'] is string && data['Data de Entrada'].size() <= 50
+      && data['Data de Saída'] is string && data['Data de Saída'].size() <= 50;
+    }
+
+
+    // Schema Validation for Erros
+    function isValidErro(data) {
+      return data.keys().hasAll([
+        'id', 'ID_Erro', 'ID_Utente', 'Data_Erro', 'Tipo_Erro',
+        'Gravidade', 'Período'
+      ])
+      && data.keys().size() == 7
+      && data.id is string && data.id.size() <= 128
+      && data.ID_Erro is string && data.ID_Erro.size() <= 128
+      && data.ID_Utente is string && data.ID_Utente.size() <= 128
+      && data.Data_Erro is string && data.Data_Erro.size() <= 50
+      && data.Tipo_Erro is string && data.Tipo_Erro.size() <= 200
+      && data.Gravidade is string && data.Gravidade.size() <= 100
+      && data['Período'] is string && data['Período'].size() <= 100;
+    }
+
+
+    // Schema Validation for Acessos
+    function isValidAcesso(data) {
+      return data.keys().hasAll([
+        'id', 'ID_Log', 'ID_Funcionário', 'ID_Utente', 'Data_hora_login',
+        'Data_Hora_Acesso_Histórico', 'Tempo_Acesso_Segundos'
+      ])
+      && data.keys().size() == 7
+      && data.id is string && data.id.size() <= 128
+      && data.ID_Log is string && data.ID_Log.size() <= 128
+      && data['ID_Funcionário'] is string && data['ID_Funcionário'].size() <= 128
+      && data.ID_Utente is string && data.ID_Utente.size() <= 128
+      && data.Data_hora_login is string && data.Data_hora_login.size() <= 50
+      && data['Data_Hora_Acesso_Histórico'] is string && data['Data_Hora_Acesso_Histórico'].size() <= 50
+      && data.Tempo_Acesso_Segundos is int && data.Tempo_Acesso_Segundos >= 0;
+    }
+
+
+
+
+
+
 
     // Rules for Care Homes (Lares)
     match /lares/{larId} {
@@ -137,6 +420,140 @@ service cloud.firestore {
         allow update: if isSignedIn() && isValidId(larId) && isValidId(medicationRecordId) && isValidMedicationRecord(incoming());
         allow delete: if isSignedIn() && isValidId(larId) && isValidId(medicationRecordId);
       }
+    }
+
+    // Rules for Lares mapping table
+    match /Lares/{mappingId} {
+      allow get: if isSignedIn() && isValidId(mappingId);
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(mappingId) && isValidLarMapping(incoming());
+      allow update: if isSignedIn() && isValidId(mappingId) && isValidLarMapping(incoming());
+      allow delete: if isSignedIn() && isValidId(mappingId);
+    }
+
+    // Rules for Patologias table
+    match /Patologias/{patologiaId} {
+      allow get: if isSignedIn() && isValidId(patologiaId);
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(patologiaId) && isValidPatologia(incoming());
+      allow update: if isSignedIn() && isValidId(patologiaId) && isValidPatologia(incoming());
+      allow delete: if isSignedIn() && isValidId(patologiaId);
+    }
+
+    // Rules for Utentes table
+    match /Utentes/{utenteId} {
+      allow get: if isSignedIn() && isValidId(utenteId);
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(utenteId) && isValidUtente(incoming());
+      allow update: if isSignedIn() && isValidId(utenteId) && isValidUtente(incoming());
+      allow delete: if isSignedIn() && isValidId(utenteId);
+    }
+
+    // Rules for Medicação table
+    match /{collectionId}/{medicationId} {
+      allow get: if collectionId == 'Medicação' && isSignedIn() && isValidId(medicationId);
+      allow list: if collectionId == 'Medicação' && isSignedIn();
+      allow create: if collectionId == 'Medicação' && isSignedIn() && isValidId(medicationId) && isValidMedicao(incoming());
+      allow update: if collectionId == 'Medicação' && isSignedIn() && isValidId(medicationId) && isValidMedicao(incoming());
+      allow delete: if collectionId == 'Medicação' && isSignedIn() && isValidId(medicationId);
+    }
+
+    // Rules for Sinais vitais table
+    match /{collectionId}/{vitalsId} {
+      allow get: if collectionId == 'Sinais vitais' && isSignedIn() && isValidId(vitalsId);
+      allow list: if collectionId == 'Sinais vitais' && isSignedIn();
+      allow create: if collectionId == 'Sinais vitais' && isSignedIn() && isValidId(vitalsId) && isValidSinaisVitais(incoming());
+      allow update: if collectionId == 'Sinais vitais' && isSignedIn() && isValidId(vitalsId) && isValidSinaisVitais(incoming());
+    }
+
+    // Rules for Ocorrências table
+    match /{collectionId}/{ocorrenciaId} {
+      allow get: if (collectionId == 'Ocorrências' || collectionId == 'ocorrencias') && isSignedIn() && isValidId(ocorrenciaId);
+      allow list: if (collectionId == 'Ocorrências' || collectionId == 'ocorrencias') && isSignedIn();
+      allow create: if (collectionId == 'Ocorrências' || collectionId == 'ocorrencias') && isSignedIn() && isValidId(ocorrenciaId) && isValidOcorrencia(incoming());
+      allow update: if (collectionId == 'Ocorrências' || collectionId == 'ocorrencias') && isSignedIn() && isValidId(ocorrenciaId) && isValidOcorrencia(incoming());
+      allow delete: if (collectionId == 'Ocorrências' || collectionId == 'ocorrencias') && isSignedIn() && isValidId(ocorrenciaId);
+    }
+
+    // Rules for Questionários table
+    match /{collectionId}/{questionarioId} {
+      allow get: if (collectionId == 'Questionários' || collectionId == 'Questionarios' || collectionId == 'questionarios') && isSignedIn() && isValidId(questionarioId);
+      allow list: if (collectionId == 'Questionários' || collectionId == 'Questionarios' || collectionId == 'questionarios') && isSignedIn();
+      allow create: if (collectionId == 'Questionários' || collectionId == 'Questionarios' || collectionId == 'questionarios') && isSignedIn() && isValidId(questionarioId) && isValidQuestionario(incoming());
+      allow update: if (collectionId == 'Questionários' || collectionId == 'Questionarios' || collectionId == 'questionarios') && isSignedIn() && isValidId(questionarioId) && isValidQuestionario(incoming());
+      allow delete: if (collectionId == 'Questionários' || collectionId == 'Questionarios' || collectionId == 'questionarios') && isSignedIn() && isValidId(questionarioId);
+    }
+
+    // Rules for Consultas table
+    match /{collectionId}/{consultaId} {
+      allow get: if (collectionId == 'Consultas' || collectionId == 'consulta' || collectionId == 'consultas') && isSignedIn() && isValidId(consultaId);
+      allow list: if (collectionId == 'Consultas' || collectionId == 'consulta' || collectionId == 'consultas') && isSignedIn();
+      allow create: if (collectionId == 'Consultas' || collectionId == 'consulta' || collectionId == 'consultas') && isSignedIn() && isValidId(consultaId) && isValidConsulta(incoming());
+      allow update: if (collectionId == 'Consultas' || collectionId == 'consulta' || collectionId == 'consultas') && isSignedIn() && isValidId(consultaId) && isValidConsulta(incoming());
+      allow delete: if (collectionId == 'Consultas' || collectionId == 'consulta' || collectionId == 'consultas') && isSignedIn() && isValidId(consultaId);
+    }
+
+    // Rules for Exames table
+    match /{collectionId}/{exameId} {
+      allow get: if (collectionId == 'Exames' || collectionId == 'exame' || collectionId == 'exames') && isSignedIn() && isValidId(exameId);
+      allow list: if (collectionId == 'Exames' || collectionId == 'exame' || collectionId == 'exames') && isSignedIn();
+      allow create: if (collectionId == 'Exames' || collectionId == 'exame' || collectionId == 'exames') && isSignedIn() && isValidId(exameId) && isValidExame(incoming());
+      allow update: if (collectionId == 'Exames' || collectionId == 'exame' || collectionId == 'exames') && isSignedIn() && isValidId(exameId) && isValidExame(incoming());
+      allow delete: if (collectionId == 'Exames' || collectionId == 'exame' || collectionId == 'exames') && isSignedIn() && isValidId(exameId);
+    }
+
+    // Rules for Familiares table
+    match /{collectionId}/{familiarId} {
+      allow get: if (collectionId == 'Familiares' || collectionId == 'familiar' || collectionId == 'familiares') && isSignedIn() && isValidId(familiarId);
+      allow list: if (collectionId == 'Familiares' || collectionId == 'familiar' || collectionId == 'familiares') && isSignedIn();
+      allow create: if (collectionId == 'Familiares' || collectionId == 'familiar' || collectionId == 'familiares') && isSignedIn() && isValidId(familiarId) && isValidFamiliar(incoming());
+      allow update: if (collectionId == 'Familiares' || collectionId == 'familiar' || collectionId == 'familiares') && isSignedIn() && isValidId(familiarId) && isValidFamiliar(incoming());
+      allow delete: if (collectionId == 'Familiares' || collectionId == 'familiar' || collectionId == 'familiares') && isSignedIn() && isValidId(familiarId);
+    }
+
+    // Rules for Alertas table
+    match /{collectionId}/{alertaId} {
+      allow get: if (collectionId == 'alertas' || collectionId == 'alerta' || collectionId == 'Alertas') && isSignedIn() && isValidId(alertaId);
+      allow list: if (collectionId == 'alertas' || collectionId == 'alerta' || collectionId == 'Alertas') && isSignedIn();
+      allow create: if (collectionId == 'alertas' || collectionId == 'alerta' || collectionId == 'Alertas') && isSignedIn() && isValidId(alertaId) && isValidAlerta(incoming());
+      allow update: if (collectionId == 'alertas' || collectionId == 'alerta' || collectionId == 'Alertas') && isSignedIn() && isValidId(alertaId) && isValidAlerta(incoming());
+      allow delete: if (collectionId == 'alertas' || collectionId == 'alerta' || collectionId == 'Alertas') && isSignedIn() && isValidId(alertaId);
+    }
+
+    // Rules for Triagem table
+    match /{collectionId}/{triagemId} {
+      allow get: if (collectionId == 'Triagem' || collectionId == 'triagem' || collectionId == 'triagens') && isSignedIn() && isValidId(triagemId);
+      allow list: if (collectionId == 'Triagem' || collectionId == 'triagem' || collectionId == 'triagens') && isSignedIn();
+      allow create: if (collectionId == 'Triagem' || collectionId == 'triagem' || collectionId == 'triagens') && isSignedIn() && isValidId(triagemId) && isValidTriagem(incoming());
+      allow update: if (collectionId == 'Triagem' || collectionId == 'triagem' || collectionId == 'triagens') && isSignedIn() && isValidId(triagemId) && isValidTriagem(incoming());
+      allow delete: if (collectionId == 'Triagem' || collectionId == 'triagem' || collectionId == 'triagens') && isSignedIn() && isValidId(triagemId);
+    }
+
+    // Rules for Funcionários table
+    match /{collectionId}/{funcionarioId} {
+      allow get: if (collectionId == 'Funcionários' || collectionId == 'funcionarios' || collectionId == 'funcionario') && isSignedIn() && isValidId(funcionarioId);
+      allow list: if (collectionId == 'Funcionários' || collectionId == 'funcionarios' || collectionId == 'funcionario') && isSignedIn();
+      allow create: if (collectionId == 'Funcionários' || collectionId == 'funcionarios' || collectionId == 'funcionario') && isSignedIn() && isValidId(funcionarioId) && isValidFuncionario(incoming());
+      allow update: if (collectionId == 'Funcionários' || collectionId == 'funcionarios' || collectionId == 'funcionario') && isSignedIn() && isValidId(funcionarioId) && isValidFuncionario(incoming());
+      allow delete: if (collectionId == 'Funcionários' || collectionId == 'funcionarios' || collectionId == 'funcionario') && isSignedIn() && isValidId(funcionarioId);
+    }
+
+    // Rules for Erros table
+    match /{collectionId}/{erroId} {
+      allow get: if (collectionId == 'Erros' || collectionId == 'erros' || collectionId == 'erro') && isSignedIn() && isValidId(erroId);
+      allow list: if (collectionId == 'Erros' || collectionId == 'erros' || collectionId == 'erro') && isSignedIn();
+      allow create: if (collectionId == 'Erros' || collectionId == 'erros' || collectionId == 'erro') && isSignedIn() && isValidId(erroId) && isValidErro(incoming());
+      allow update: if (collectionId == 'Erros' || collectionId == 'erros' || collectionId == 'erro') && isSignedIn() && isValidId(erroId) && isValidErro(incoming());
+      allow delete: if (collectionId == 'Erros' || collectionId == 'erros' || collectionId == 'erro') && isSignedIn() && isValidId(erroId);
+    }
+
+    // Rules for Acessos table
+    match /{collectionId}/{acessoId} {
+      allow get: if (collectionId == 'acessos' || collectionId == 'Acessos' || collectionId == 'acesso') && isSignedIn() && isValidId(acessoId);
+      allow list: if (collectionId == 'acessos' || collectionId == 'Acessos' || collectionId == 'acesso') && isSignedIn();
+      allow create: if (collectionId == 'acessos' || collectionId == 'Acessos' || collectionId == 'acesso') && isSignedIn() && isValidId(acessoId) && isValidAcesso(incoming());
+      allow update: if (collectionId == 'acessos' || collectionId == 'Acessos' || collectionId == 'acesso') && isSignedIn() && isValidId(acessoId) && isValidAcesso(incoming());
+      allow delete: if (collectionId == 'acessos' || collectionId == 'Acessos' || collectionId == 'acesso') && isSignedIn() && isValidId(acessoId);
     }
   }
 }
